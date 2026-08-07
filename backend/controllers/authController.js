@@ -110,8 +110,11 @@ const verifyOtp = async (req, res) => {
 
     // Generate token and set cookie AFTER successful OTP verification
     const token = generateToken(user._id);
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("authToken", token, {
       httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000 * 365,
     });
     return res

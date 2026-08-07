@@ -21,16 +21,30 @@ connectDB();
 // Initialize Socket.IO
 const io = initializeSocket(server);
 
-// CORS
+// Robust Production CORS Configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  "http://localhost:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin:
-      process.env.FRONTEND_URL ||
-      process.env.CLIENT_URL ||
-      "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        origin.includes("localhost")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  }),
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
 );
 
 // Middlewares
@@ -43,6 +57,11 @@ app.use((req, res, next) => {
   req.io = io;
   req.socketUserMap = io.socketUserMap;
   next();
+});
+
+// Health check endpoint for Render / monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date() });
 });
 
 // Routes

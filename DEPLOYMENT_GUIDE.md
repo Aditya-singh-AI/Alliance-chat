@@ -74,7 +74,7 @@ This guide provides a **100% free, step-by-step walkthrough** to deploy the **Ta
    | `REACT_APP_API_URL` | `https://talkative-backend.onrender.com` *(Your Render backend URL)* |
 
 5. Click **Deploy**.
-6. Once deployed, copy your live Vercel domain URL (e.g., `https://talkative-chat.vercel.app`).
+6. Once deployed, copy your live Vercel domain URL (e.g., `https://talkative-chat-application-ten.vercel.app`).
 
 ---
 
@@ -82,7 +82,7 @@ This guide provides a **100% free, step-by-step walkthrough** to deploy the **Ta
 
 1. Return to **Render** → Your `talkative-backend` service → **Environment**.
 2. Ensure `FRONTEND_URL` is updated to your exact live Vercel URL:
-   `https://talkative-chat.vercel.app`
+   `https://talkative-chat-application-ten.vercel.app`
 3. Click **Save Changes** (Render will automatically redeploy).
 
 ---
