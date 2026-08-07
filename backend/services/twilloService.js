@@ -21,9 +21,8 @@ const sendOtpToPhoneNumber = async (phoneNumber) => {
       throw new Error("Phone number is required");
     }
 
-    if (!client || !serviceSid || !serviceSid.startsWith("VA") || serviceSid.length !== 34) {
-      console.warn("Twilio Service SID is invalid or not configured. (Service SID must start with VA and be 34 characters).");
-      throw new Error("Twilio Verify Service SID is invalid. Please check TWILIO_SERVICE_SID in your Render environment variables.");
+    if (!client || !serviceSid) {
+      throw new Error("Twilio is not configured.");
     }
 
     const response = await client.verify.v2.services(serviceSid).verifications.create({
@@ -42,19 +41,19 @@ const verifyOtp = async (phoneNumber, otp) => {
   try {
     console.log("Verifying OTP for number:", phoneNumber, "OTP:", otp);
 
-    if (!client || !serviceSid || !serviceSid.startsWith("VA") || serviceSid.length !== 34) {
-      throw new Error("Twilio Verify Service SID is invalid or not configured.");
+    if (!client || !serviceSid) {
+      return null;
     }
 
     const response = await client.verify.v2.services(serviceSid).verificationChecks.create({
       to: phoneNumber,
       code: otp,
     });
-    console.log("Twilio OTP verification response:", response.status);
+    console.log("Twilio OTP verification response:", response?.status);
     return response;
   } catch (error) {
-    console.error("Error in verifyOtp:", error.message || error);
-    throw error;
+    console.warn("Twilio verify API error:", error.message || error);
+    return null;
   }
 };
 

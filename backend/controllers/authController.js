@@ -105,11 +105,13 @@ const verifyOtp = async (req, res) => {
       user.emailOtpExpiry = null;
       await user.save();
     } else {
-      if (!phoneNumber || !phoneSuffix) {
-        return response(res, 400, "Phone number and suffix are required");
+      if (!phoneNumber) {
+        return response(res, 400, "Phone number is required");
       }
-      const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
-      user = await User.findOne({ phoneNumber });
+      const fullPhoneNumber = phoneSuffix ? `${phoneSuffix}${phoneNumber}` : phoneNumber;
+      user = await User.findOne({
+        $or: [{ phoneNumber }, { phoneNumber: fullPhoneNumber }]
+      });
       if (!user) {
         return response(res, 404, "User not found");
       }
@@ -126,15 +128,14 @@ const verifyOtp = async (req, res) => {
         user.phoneOtpExpiry = null;
         await user.save();
       } else {
-        try {
-          const result = await twilloService.verifyOtp(fullPhoneNumber, otp);
-          if (result.status !== "approved") {
-            return response(res, 400, "OTP verification failed");
-          }
+        const result = await twilloService.verifyOtp(fullPhoneNumber, otp);
+        if (result && result.status === "approved") {
           user.isVerified = true;
+          user.phoneOtp = null;
+          user.phoneOtpExpiry = null;
           await user.save();
-        } catch (twErr) {
-          return response(res, 400, "Invalid OTP code");
+        } else {
+          return response(res, 400, "Invalid or expired OTP code");
         }
       }
     }
