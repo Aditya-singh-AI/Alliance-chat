@@ -88,7 +88,8 @@ const Login = () => {
       );
       if (res.status === 'success') {
         toast.info(res.message || 'Verification code sent!');
-        setUserPhoneData({ phoneNumber, phoneSuffix: selectedCountry.dialCode, email });
+        const fallbackOtp = res.data?.devOtp || (res.message ? res.message.match(/\d{6}/)?.[0] : null);
+        setUserPhoneData({ phoneNumber, phoneSuffix: selectedCountry.dialCode, email, fallbackOtp });
         setStep(2);
       }
     } catch (err) {
@@ -339,6 +340,15 @@ const Login = () => {
               <p className={`text-sm text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 Enter the 6-digit code sent to your {userPhoneData?.email ? 'email' : 'phone'}
               </p>
+
+              {userPhoneData?.fallbackOtp && (
+                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-center">
+                  <p className="text-xs text-purple-400 font-semibold mb-1">Verification Code:</p>
+                  <span className="text-2xl font-extrabold tracking-widest text-purple-400 font-mono">
+                    {userPhoneData.fallbackOtp}
+                  </span>
+                </div>
+              )}
 
               <div className="flex justify-between gap-2">
                 {otp.map((digit, idx) => (

@@ -31,7 +31,10 @@ const sendOtp = async (req, res) => {
         user.emailOtpExpiry = expiry;
       }
       await user.save();
-      await sendOtpToEmail(email, otp);
+      const emailSent = await sendOtpToEmail(email, otp);
+      if (!emailSent) {
+        return response(res, 200, `Verification code: ${otp}`, { email, devOtp: otp });
+      }
       return response(res, 200, "OTP sent to your email", { email });
     } // Fix 2: Added the missing closing bracket for the `if(email)` block
 
