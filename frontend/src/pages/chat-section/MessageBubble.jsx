@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { format } from "date-fns";
-import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash } from "react-icons/io5";
+import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash, IoClose, IoDownload } from "react-icons/io5";
 import { useChatStore } from "../../store/useChatStore";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
@@ -48,6 +48,9 @@ const MessageBubble = ({ message }) => {
 
   const isDark = theme === "dark";
 
+  const [showFullImage, setShowFullImage] = useState(false);
+  const mediaSrc = message.mediaUrl || message.imageOrVideoUrl;
+
   return (
     <div className={`flex ${isUserMessage ? "justify-end" : "justify-start"} group relative mb-2 select-none`}>
       <div className="relative max-w-[75%] sm:max-w-[65%]">
@@ -84,11 +87,12 @@ const MessageBubble = ({ message }) => {
               : "bg-white text-gray-900 rounded-tl-none"
         }`}>
           {/* Media Attachment */}
-          {message.contentType === "image" && (message.mediaUrl || message.imageOrVideoUrl) && (
+          {message.contentType === "image" && mediaSrc && (
             <img
-              src={message.mediaUrl || message.imageOrVideoUrl}
+              src={mediaSrc}
               alt="attachment"
-              className="rounded-xl max-h-72 w-full object-cover mb-1.5"
+              onClick={() => setShowFullImage(true)}
+              className="rounded-xl max-h-72 w-full object-cover mb-1.5 cursor-pointer hover:opacity-95 transition-opacity"
             />
           )}
 
@@ -188,6 +192,40 @@ const MessageBubble = ({ message }) => {
                 {emoji}
               </button>
             ))}
+          </div>
+        )}
+        {/* Full Screen Image Viewer Modal */}
+        {showFullImage && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => setShowFullImage(false)}
+          >
+            <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center">
+              <button
+                onClick={() => setShowFullImage(false)}
+                className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 p-2 rounded-full backdrop-blur-sm transition-all shadow-lg"
+                title="Close"
+              >
+                <IoClose className="w-6 h-6" />
+              </button>
+              <a
+                href={mediaSrc}
+                download="photo"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="absolute -top-12 right-12 text-white bg-white/20 hover:bg-white/40 p-2 rounded-full backdrop-blur-sm transition-all shadow-lg"
+                title="Open / Download"
+              >
+                <IoDownload className="w-6 h-6" />
+              </a>
+              <img
+                src={mediaSrc}
+                alt="Full size attachment"
+                onClick={(e) => e.stopPropagation()}
+                className="max-h-[85vh] max-w-[85vw] object-contain rounded-xl shadow-2xl border border-white/10"
+              />
+            </div>
           </div>
         )}
       </div>
