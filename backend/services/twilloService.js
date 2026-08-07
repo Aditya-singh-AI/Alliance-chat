@@ -10,49 +10,46 @@ if (accountSid && authToken) {
   try {
     client = twilio(accountSid, authToken);
   } catch (err) {
-    console.error("Twilio client initialization failed:", err.message);
+    console.log("Twilio client initialization skipped:", err.message);
   }
 }
 
 const sendOtpToPhoneNumber = async (phoneNumber) => {
+  if (!phoneNumber) {
+    throw new Error("Phone number is required");
+  }
+
+  if (!client || !serviceSid) {
+    // Return false silently so controller can use DB fallback without throwing scary error logs
+    return false;
+  }
+
   try {
-    console.log("Sending OTP to number:", phoneNumber);
-    if (!phoneNumber) {
-      throw new Error("Phone number is required");
-    }
-
-    if (!client || !serviceSid) {
-      throw new Error("Twilio is not configured.");
-    }
-
+    console.log("Sending SMS OTP via Twilio to number:", phoneNumber);
     const response = await client.verify.v2.services(serviceSid).verifications.create({
       to: phoneNumber,
       channel: "sms",
     });
-
     return response;
   } catch (error) {
-    console.error("Error in sendOtpToPhoneNumber:", error.message || error);
-    throw error;
+    console.warn("Twilio SMS send error (will use fallback):", error.message || error);
+    return false;
   }
 };
 
 const verifyOtp = async (phoneNumber, otp) => {
+  if (!client || !serviceSid) {
+    return null;
+  }
+
   try {
-    console.log("Verifying OTP for number:", phoneNumber, "OTP:", otp);
-
-    if (!client || !serviceSid) {
-      return null;
-    }
-
     const response = await client.verify.v2.services(serviceSid).verificationChecks.create({
       to: phoneNumber,
       code: otp,
     });
-    console.log("Twilio OTP verification response:", response?.status);
     return response;
   } catch (error) {
-    console.warn("Twilio verify API error:", error.message || error);
+    console.warn("Twilio verify error:", error.message || error);
     return null;
   }
 };

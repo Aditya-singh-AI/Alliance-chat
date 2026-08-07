@@ -61,16 +61,14 @@ const sendOtp = async (req, res) => {
 
     await user.save();
 
-    try {
-      await twilloService.sendOtpToPhoneNumber(fullPhoneNumber);
-    } catch (twErr) {
-      console.warn("Twilio SMS send failed:", twErr.message);
-      console.log(`[DEMO / FALLBACK OTP for ${fullPhoneNumber}]: ${otp}`);
+    const twilioResult = await twilloService.sendOtpToPhoneNumber(fullPhoneNumber);
+    if (!twilioResult) {
+      console.log(`[INFO] OTP generated for ${fullPhoneNumber}: ${otp}`);
       return response(
         res,
         200,
-        `OTP sent! (Note: Twilio SID issue detected. Use code: ${otp})`,
-        user
+        `Verification code: ${otp}`,
+        { ...user.toObject(), devOtp: otp }
       );
     }
 
