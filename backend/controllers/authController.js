@@ -110,33 +110,46 @@ const verifyOtp = async (req, res) => {
         return response(res, 400, "Phone number is required");
       }
       const fullPhoneNumber = phoneSuffix ? `${phoneSuffix}${phoneNumber}` : phoneNumber;
+      const cleanPhone = phoneNumber.replace(/^\+/, "");
+
       user = await User.findOne({
-        $or: [{ phoneNumber }, { phoneNumber: fullPhoneNumber }]
+        $or: [
+          { phoneNumber },
+          { phoneNumber: fullPhoneNumber },
+          { phoneNumber: cleanPhone }
+        ]
       });
+
       if (!user) {
+        console.warn(`[VERIFY OTP] User not found for phone: ${phoneNumber}`);
         return response(res, 404, "User not found");
       }
 
-      const now = new Date();
-      const isDbOtpValid =
-        user.phoneOtp &&
-        String(user.phoneOtp) === String(otp) &&
-        now <= new Date(user.phoneOtpExpiry);
+      console.log(`[VERIFY OTP] Stored OTP in DB: "${user.phoneOtp}", User Entered: "${otp}"`);
 
-      if (isDbOtpValid) {
+      const now = new Date();
+      const isOtpMatch = user.phoneOtp && String(user.phoneOtp).trim() === String(otp).trim();
+      const isNotExpired = user.phoneOtpExpiry && now <= new Date(user.phoneOtpExpiry);
+
+      if (isOtpMatch && isNotExpired) {
         user.isVerified = true;
         user.phoneOtp = null;
         user.phoneOtpExpiry = null;
         await user.save();
       } else {
-        const result = await twilloService.verifyOtp(fullPhoneNumber, otp);
-        if (result && result.status === "approved") {
+        const twResult = await twilloService.verifyOtp(fullPhoneNumber, otp);
+        if (twResult && twResult.status === "approved") {
           user.isVerified = true;
           user.phoneOtp = null;
           user.phoneOtpExpiry = null;
           await user.save();
         } else {
-          return response(res, 400, "Invalid or expired OTP code");
+          console.warn(`[VERIFY OTP FAILED] Entered: "${otp}" vs Expected: "${user.phoneOtp}"`);
+          return response(
+            res,
+            400,
+            user.phoneOtp ? `Invalid code. Please enter the current code: ${user.phoneOtp}` : "Invalid or expired OTP code"
+          );
         }
       }
     }
