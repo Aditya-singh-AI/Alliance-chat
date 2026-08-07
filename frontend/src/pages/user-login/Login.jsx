@@ -60,7 +60,7 @@ const Login = () => {
   );
 
   // ── Form hooks ─────────────────────────────────────────────────────────
-  const { handleSubmit: submitLogin, formState: { errors: errLogin } } =
+  const { formState: { errors: errLogin } } =
     useForm({ resolver: yupResolver(loginSchema) });
 
   const { handleSubmit: submitOtp, setValue: setOtpVal, formState: { errors: errOtp } } =
