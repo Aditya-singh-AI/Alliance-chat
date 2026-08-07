@@ -38,21 +38,30 @@ const sendOtp = async (req, res) => {
       return response(res, 200, "OTP sent to your email", { email });
     } // Fix 2: Added the missing closing bracket for the `if(email)` block
 
-    if (!phoneNumber || !phoneSuffix) {
+    if (!phoneNumber) {
       return response(
         res,
         400,
-        "Please enter phone number and suffix are required",
+        "Please enter phone number",
       );
     }
 
-    const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
-    user = await User.findOne({ phoneNumber });
+    const digitsOnly = phoneNumber.replace(/\D/g, "");
+    const fullPhoneNumber = phoneSuffix ? `${phoneSuffix}${digitsOnly}` : `+${digitsOnly}`;
+
+    // Find existing user sorted by updatedAt so we pick the active record
+    user = await User.findOne({
+      $or: [
+        { phoneNumber: digitsOnly },
+        { phoneNumber: fullPhoneNumber },
+        { phoneNumber }
+      ]
+    }).sort({ updatedAt: -1 });
 
     if (!user) {
       user = new User({
-        phoneNumber,
-        phoneSuffix,
+        phoneNumber: digitsOnly,
+        phoneSuffix: phoneSuffix || "+91",
         phoneOtp: otp,
         phoneOtpExpiry: expiry,
       });
@@ -109,23 +118,23 @@ const verifyOtp = async (req, res) => {
       if (!phoneNumber) {
         return response(res, 400, "Phone number is required");
       }
-      const fullPhoneNumber = phoneSuffix ? `${phoneSuffix}${phoneNumber}` : phoneNumber;
-      const cleanPhone = phoneNumber.replace(/^\+/, "");
+      const digitsOnly = phoneNumber.replace(/\D/g, "");
+      const fullPhoneNumber = phoneSuffix ? `${phoneSuffix}${digitsOnly}` : `+${digitsOnly}`;
 
       user = await User.findOne({
         $or: [
-          { phoneNumber },
+          { phoneNumber: digitsOnly },
           { phoneNumber: fullPhoneNumber },
-          { phoneNumber: cleanPhone }
+          { phoneNumber }
         ]
-      });
+      }).sort({ updatedAt: -1 });
 
       if (!user) {
         console.warn(`[VERIFY OTP] User not found for phone: ${phoneNumber}`);
         return response(res, 404, "User not found");
       }
 
-      console.log(`[VERIFY OTP] Stored OTP in DB: "${user.phoneOtp}", User Entered: "${otp}"`);
+      console.log(`[VERIFY OTP] User ID: ${user._id}, Stored OTP in DB: "${user.phoneOtp}", User Entered: "${otp}"`);
 
       const now = new Date();
       const isOtpMatch = user.phoneOtp && String(user.phoneOtp).trim() === String(otp).trim();
@@ -148,7 +157,9 @@ const verifyOtp = async (req, res) => {
           return response(
             res,
             400,
-            user.phoneOtp ? `Invalid code. Please enter the current code: ${user.phoneOtp}` : "Invalid or expired OTP code"
+            user.phoneOtp
+              ? `Invalid code. Please enter current code: ${user.phoneOtp}`
+              : "Invalid or expired OTP code"
           );
         }
       }
