@@ -79,16 +79,20 @@ export default function Status() {
     } catch (err) { console.error(err); }
   };
 
-  // Group statuses by userId
-  const groupedStatuses = statuses.reduce((acc, cur) => {
-    const uid = cur.user._id;
+  // Group statuses by userId safely
+  const getUserIdStr = (u) => (u?._id || u?.id || u)?.toString() || "";
+  const currentUserId = getUserIdStr(user);
+
+  const groupedStatuses = (statuses || []).reduce((acc, cur) => {
+    const uid = getUserIdStr(cur?.user);
+    if (!uid) return acc;
     if (!acc[uid]) acc[uid] = { user: cur.user, stories: [] };
     acc[uid].stories.push(cur);
     return acc;
   }, {});
 
-  const myStatuses = groupedStatuses[user?._id];
-  const contactStatuses = Object.entries(groupedStatuses).filter(([id]) => id !== user?._id);
+  const myStatuses = groupedStatuses[currentUserId];
+  const contactStatuses = Object.entries(groupedStatuses).filter(([id]) => id !== currentUserId);
 
   return (
     <div className={`h-full flex flex-col ${isDark ? 'bg-[#111b21] text-white' : 'bg-gray-100 text-gray-800'}`}>

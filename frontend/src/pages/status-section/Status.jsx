@@ -39,12 +39,15 @@ const Status = () => {
   }, [fetchStatuses]);
 
   // Separate my statuses from others'
-  const myStatuses = allStatuses.filter(s => (s.user?._id || s.user) === user?._id);
-  const otherStatuses = allStatuses.filter(s => (s.user?._id || s.user) !== user?._id);
+  const getUserIdStr = (u) => (u?._id || u?.id || u)?.toString() || "";
+  const currentUserId = getUserIdStr(user);
+
+  const myStatuses = allStatuses.filter(s => getUserIdStr(s.user) === currentUserId);
+  const otherStatuses = allStatuses.filter(s => getUserIdStr(s.user) !== currentUserId);
 
   // Group other statuses by user
   const groupedByUser = otherStatuses.reduce((acc, status) => {
-    const userId = status.user?._id || status.user;
+    const userId = getUserIdStr(status.user);
     if (!acc[userId]) {
       acc[userId] = {
         userId,
