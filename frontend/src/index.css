@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --emerald-accent: #00a884;
+  --emerald-hover: #008f6f;
+  --emerald-light: #d9fdd3;
+  --dark-bg: #0b141a;
+  --dark-surface: #111b21;
+  --dark-panel: #202c33;
+  --dark-chat-bg: #0b141a;
+  --dark-bubble-own: #005c4b;
+  --dark-bubble-other: #202c33;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0b141a;
+  color: #e9edef;
+  user-select: none;
+}
+
+/* Custom scrollbars - sleek & subtle */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(134, 150, 160, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(134, 150, 160, 0.45);
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(17, 27, 33, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Telegram / WhatsApp style wallpaper background overlay */
+.chat-pattern-dark {
+  background-color: #0b141a;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.chat-pattern-light {
+  background-color: #efeae2;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Pulse indicator for online status */
+@keyframes onlinePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 168, 132, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0);
+  }
+}
+
+.online-badge {
+  animation: onlinePulse 2s infinite;
+}
+
+/* Animations for subtle UI feel */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
