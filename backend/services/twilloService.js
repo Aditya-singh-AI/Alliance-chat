@@ -1,55 +1,73 @@
 const twilio = require("twilio");
 
-// Support both TWILIO_ and TWILLO_ typo variations from env files
-const accountSid = (process.env.TWILIO_ACCOUNT_SID || process.env.TWILLO_ACCOUT_SID || process.env.TWILLO_ACCOUNT_SID || "").trim();
-const authToken = (process.env.TWILIO_AUTH_TOKEN || process.env.TWILLO_AUTH_TOKEN || "").trim();
-const serviceSid = (process.env.TWILIO_SERVICE_SID || process.env.TWILLO_SERVICE_SID || "").trim();
+/**
+ * Reads credentials dynamically to support hot-reloading & production env configs.
+ */
+const getTwilioConfig = () => {
+  const accountSid = (
+    process.env.TWILIO_ACCOUNT_SID ||
+    process.env.TWILLO_ACCOUT_SID ||
+    process.env.TWILLO_ACCOUNT_SID ||
+    ""
+  ).trim();
+  const authToken = (
+    process.env.TWILIO_AUTH_TOKEN ||
+    process.env.TWILLO_AUTH_TOKEN ||
+    ""
+  ).trim();
+  const serviceSid = (
+    process.env.TWILIO_SERVICE_SID ||
+    process.env.TWILLO_SERVICE_SID ||
+    ""
+  ).trim();
 
-let client = null;
-if (accountSid && authToken) {
-  try {
-    client = twilio(accountSid, authToken);
-  } catch (err) {
-    console.log("Twilio client initialization skipped:", err.message);
-  }
-}
+  return { accountSid, authToken, serviceSid };
+};
 
 const sendOtpToPhoneNumber = async (phoneNumber) => {
   if (!phoneNumber) {
     throw new Error("Phone number is required");
   }
 
-  if (!client || !serviceSid) {
-    // Return false silently so controller can use DB fallback without throwing scary error logs
+  const { accountSid, authToken, serviceSid } = getTwilioConfig();
+
+  if (!accountSid || !authToken || !serviceSid) {
+    console.log("[INFO] Twilio credentials incomplete. Skipping real SMS dispatch.");
     return false;
   }
 
   try {
-    console.log("Sending SMS OTP via Twilio to number:", phoneNumber);
+    const client = twilio(accountSid, authToken);
+    console.log(`[TWILIO] Sending real SMS OTP to ${phoneNumber}...`);
     const response = await client.verify.v2.services(serviceSid).verifications.create({
       to: phoneNumber,
       channel: "sms",
     });
+    console.log(`[TWILIO] SMS sent successfully to ${phoneNumber}. Status: ${response.status}`);
     return response;
   } catch (error) {
-    console.warn("Twilio SMS send error (will use fallback):", error.message || error);
+    console.error("[TWILIO ERROR] Real SMS send failed:", error.message || error);
     return false;
   }
 };
 
 const verifyOtp = async (phoneNumber, otp) => {
-  if (!client || !serviceSid) {
+  const { accountSid, authToken, serviceSid } = getTwilioConfig();
+
+  if (!accountSid || !authToken || !serviceSid) {
     return null;
   }
 
   try {
+    const client = twilio(accountSid, authToken);
     const response = await client.verify.v2.services(serviceSid).verificationChecks.create({
       to: phoneNumber,
       code: otp,
     });
+    console.log(`[TWILIO] Verification check status for ${phoneNumber}: ${response.status}`);
     return response;
   } catch (error) {
-    console.warn("Twilio verify error:", error.message || error);
+    console.warn("[TWILIO ERROR] Verification check failed:", error.message || error);
     return null;
   }
 };
