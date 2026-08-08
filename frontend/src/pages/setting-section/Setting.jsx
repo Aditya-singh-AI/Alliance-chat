@@ -76,39 +76,43 @@ const Setting = () => {
     }
   };
 
-  const fieldClass = `flex-1 p-1.5 bg-transparent border-b-2 border-[#00a884] focus:outline-none text-sm ${
-    isDark ? 'text-[#e9edef]' : 'text-gray-900'
+  const fieldClass = `flex-1 p-1.5 bg-transparent border-b-2 border-[#F97316] focus:outline-none text-sm ${
+    isDark ? 'text-[#FAFAFA]' : 'text-[#0C0A09]'
   }`;
 
   // Profile Editor View
   if (activeSection === 'profile') {
     return (
       <div className={`h-full flex flex-col select-none ${
-        isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-white text-gray-900'
+        isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
       }`}>
         {/* Header */}
         <div className={`p-4 flex items-center gap-3 border-b ${
-          isDark ? 'border-[#202c33]' : 'border-gray-100'
+          isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'
         }`}>
           <button
             onClick={() => setActiveSection(null)}
-            className={`p-1.5 rounded-full ${isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-100'}`}
+            className={`p-1.5 rounded-xl ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}
           >
             <FaChevronLeft size={16} />
           </button>
-          <h2 className="text-lg font-bold">Edit Profile</h2>
+          <h2 className="text-lg font-extrabold">Edit Profile</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* Avatar */}
           <div className="flex flex-col items-center">
             <div className="relative w-28 h-28 group">
-              <img
-                src={previewUrl || user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
-                alt="Avatar"
-                className="w-full h-full rounded-full object-cover border-4 border-[#00a884]"
-              />
-              <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
+              <div className="w-full h-full rounded-2xl accent-gradient p-[3px]">
+                <div className={`w-full h-full rounded-[13px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
+                  <img
+                    src={previewUrl || user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <label className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
                 <FaCamera className="text-white text-xl" />
                 <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               </label>
@@ -119,7 +123,7 @@ const Setting = () => {
                 animate={{ opacity: 1, y: 0 }}
                 onClick={handleUploadImage}
                 disabled={loading}
-                className="mt-3 px-5 py-1.5 bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-bold rounded-full shadow transition disabled:opacity-50"
+                className="mt-3 px-5 py-1.5 accent-gradient text-white text-xs font-bold rounded-xl shadow transition disabled:opacity-50 hover:brightness-110"
               >
                 {loading ? 'Uploading...' : 'Save Picture'}
               </motion.button>
@@ -127,8 +131,8 @@ const Setting = () => {
           </div>
 
           {/* Username field */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
-            <label className="text-xs text-[#00a884] font-semibold block mb-2">Your Name</label>
+          <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
+            <label className="text-[10px] text-[#F97316] font-bold uppercase tracking-widest block mb-2">Your Name</label>
             <div className="flex items-center justify-between gap-2">
               {isEditingName ? (
                 <>
@@ -142,15 +146,15 @@ const Setting = () => {
                   <button
                     onClick={() => handleUpdateField('username', username)}
                     disabled={loading}
-                    className="text-[#00a884] hover:text-[#008f6f] disabled:opacity-50"
+                    className="text-[#F97316] hover:brightness-110 disabled:opacity-50"
                   >
                     <FaCheck size={14} />
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="font-medium text-sm">{user?.username || '—'}</span>
-                  <button onClick={() => { setUsername(user?.username || ''); setIsEditingName(true); }} className="text-gray-400 hover:text-[#00a884]">
+                  <span className="font-bold text-sm">{user?.username || '—'}</span>
+                  <button onClick={() => { setUsername(user?.username || ''); setIsEditingName(true); }} className={`${isDark ? 'text-[#71717A] hover:text-[#F97316]' : 'text-[#A8A29E] hover:text-[#F97316]'}`}>
                     <FaPen size={12} />
                   </button>
                 </>
@@ -159,8 +163,8 @@ const Setting = () => {
           </div>
 
           {/* About field */}
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
-            <label className="text-xs text-[#00a884] font-semibold block mb-2">About</label>
+          <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
+            <label className="text-[10px] text-[#F97316] font-bold uppercase tracking-widest block mb-2">About</label>
             <div className="flex items-center justify-between gap-2">
               {isEditingAbout ? (
                 <>
@@ -174,17 +178,17 @@ const Setting = () => {
                   <button
                     onClick={() => handleUpdateField('about', about)}
                     disabled={loading}
-                    className="text-[#00a884] hover:text-[#008f6f] disabled:opacity-50"
+                    className="text-[#F97316] hover:brightness-110 disabled:opacity-50"
                   >
                     <FaCheck size={14} />
                   </button>
                 </>
               ) : (
                 <>
-                  <span className={`font-medium text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-700'}`}>
+                  <span className={`font-medium text-sm ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
                     {user?.about || 'Hey there! I am using Talkative.'}
                   </span>
-                  <button onClick={() => { setAbout(user?.about || ''); setIsEditingAbout(true); }} className="text-gray-400 hover:text-[#00a884] flex-shrink-0">
+                  <button onClick={() => { setAbout(user?.about || ''); setIsEditingAbout(true); }} className={`flex-shrink-0 ${isDark ? 'text-[#71717A] hover:text-[#F97316]' : 'text-[#A8A29E] hover:text-[#F97316]'}`}>
                     <FaPen size={12} />
                   </button>
                 </>
@@ -194,18 +198,18 @@ const Setting = () => {
 
           {/* Read-only info */}
           {(user?.email || user?.phoneNumber) && (
-            <div className={`p-4 rounded-2xl space-y-3 ${isDark ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
-              <label className="text-xs text-[#00a884] font-semibold block">Account Info</label>
+            <div className={`p-4 rounded-2xl border space-y-3 ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
+              <label className="text-[10px] text-[#F97316] font-bold uppercase tracking-widest block">Account Info</label>
               {user?.email && (
                 <div>
-                  <p className="text-xs text-gray-400">Email</p>
-                  <p className="font-medium text-sm">{user.email}</p>
+                  <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>Email</p>
+                  <p className="font-bold text-sm">{user.email}</p>
                 </div>
               )}
               {user?.phoneNumber && (
                 <div>
-                  <p className="text-xs text-gray-400">Phone</p>
-                  <p className="font-medium text-sm">{user.phoneSuffix}{user.phoneNumber}</p>
+                  <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>Phone</p>
+                  <p className="font-bold text-sm">{user.phoneSuffix}{user.phoneNumber}</p>
                 </div>
               )}
             </div>
@@ -219,22 +223,22 @@ const Setting = () => {
   if (activeSection === 'notifications') {
     return (
       <div className={`h-full flex flex-col select-none ${
-        isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-white text-gray-900'
+        isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
       }`}>
-        <div className={`p-4 flex items-center gap-3 border-b ${isDark ? 'border-[#202c33]' : 'border-gray-100'}`}>
-          <button onClick={() => setActiveSection(null)} className={`p-1.5 rounded-full ${isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-100'}`}>
+        <div className={`p-4 flex items-center gap-3 border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+          <button onClick={() => setActiveSection(null)} className={`p-1.5 rounded-xl ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}>
             <FaChevronLeft size={16} />
           </button>
-          <h2 className="text-lg font-bold">Notifications</h2>
+          <h2 className="text-lg font-extrabold">Notifications</h2>
         </div>
         <div className="flex-1 p-5 space-y-4">
-          <div className={`p-4 rounded-2xl ${isDark ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
+          <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-sm">Message Notifications</p>
-                <p className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>Show notifications for new messages</p>
+                <p className="font-bold text-sm">Message Notifications</p>
+                <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>Show notifications for new messages</p>
               </div>
-              <div className="w-10 h-6 bg-[#00a884] rounded-full relative cursor-pointer">
+              <div className="w-10 h-6 accent-gradient rounded-full relative cursor-pointer shadow-md shadow-orange-500/20">
                 <div className="absolute right-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow" />
               </div>
             </div>
@@ -248,13 +252,13 @@ const Setting = () => {
   if (activeSection === 'privacy') {
     return (
       <div className={`h-full flex flex-col select-none ${
-        isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-white text-gray-900'
+        isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
       }`}>
-        <div className={`p-4 flex items-center gap-3 border-b ${isDark ? 'border-[#202c33]' : 'border-gray-100'}`}>
-          <button onClick={() => setActiveSection(null)} className={`p-1.5 rounded-full ${isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-100'}`}>
+        <div className={`p-4 flex items-center gap-3 border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+          <button onClick={() => setActiveSection(null)} className={`p-1.5 rounded-xl ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}>
             <FaChevronLeft size={16} />
           </button>
-          <h2 className="text-lg font-bold">Privacy</h2>
+          <h2 className="text-lg font-extrabold">Privacy</h2>
         </div>
         <div className="flex-1 p-5 space-y-4">
           {[
@@ -262,13 +266,13 @@ const Setting = () => {
             { label: 'Profile Photo', desc: 'Everyone', value: 'Everyone' },
             { label: 'Read Receipts', desc: 'Enabled', value: 'On' },
           ].map((item) => (
-            <div key={item.label} className={`p-4 rounded-2xl ${isDark ? 'bg-[#202c33]' : 'bg-[#f0f2f5]'}`}>
+            <div key={item.label} className={`p-4 rounded-2xl border ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm">{item.label}</p>
-                  <p className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>{item.desc}</p>
+                  <p className="font-bold text-sm">{item.label}</p>
+                  <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{item.desc}</p>
                 </div>
-                <span className="text-xs text-[#00a884] font-semibold">{item.value}</span>
+                <span className="text-xs text-[#F97316] font-bold">{item.value}</span>
               </div>
             </div>
           ))}
@@ -297,52 +301,56 @@ const Setting = () => {
 
   return (
     <div className={`h-full flex flex-col select-none ${
-      isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-white text-gray-900'
+      isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
     }`}>
       {/* Header */}
-      <div className={`p-5 border-b ${isDark ? 'border-[#202c33]' : 'border-gray-100'}`}>
-        <h2 className="text-xl font-bold tracking-tight">Settings</h2>
+      <div className={`p-5 border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+        <h2 className="text-xl font-extrabold tracking-tight">Settings</h2>
       </div>
 
       {/* User profile card */}
       <motion.div
         whileHover={{ scale: 1.01 }}
         onClick={() => setActiveSection('profile')}
-        className={`mx-4 mt-4 p-4 rounded-2xl flex items-center gap-4 border cursor-pointer ${
-          isDark ? 'bg-[#202c33] border-[#202c33] hover:bg-[#2a3942]' : 'bg-[#f0f2f5] border-gray-200 hover:bg-gray-200/80'
+        className={`mx-4 mt-4 p-4 rounded-2xl flex items-center gap-4 border cursor-pointer transition-all ${
+          isDark ? 'bg-[#27272A] border-[#3F3F46] hover:border-[#F97316]/30' : 'bg-white border-[#E7E5E4] hover:border-[#F97316]/30 shadow-sm'
         }`}
       >
         <div className="relative">
-          <img
-            src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
-            alt="Profile"
-            className="w-14 h-14 rounded-full object-cover border-2 border-[#00a884]"
-          />
-          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00a884] border-2 border-[#111b21] rounded-full online-badge" />
+          <div className="w-14 h-14 rounded-2xl accent-gradient p-[2px]">
+            <div className={`w-full h-full rounded-[12px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
+              <img
+                src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#18181B] rounded-full online-badge" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold truncate">{user?.username || 'User'}</h3>
-          <p className={`text-xs truncate ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
+          <h3 className="font-extrabold truncate">{user?.username || 'User'}</h3>
+          <p className={`text-xs truncate ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
             {user?.phoneNumber ? `${user.phoneSuffix || ''} ${user.phoneNumber}` : user?.email || ''}
           </p>
-          <p className={`text-xs mt-0.5 ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>
+          <p className={`text-xs mt-0.5 ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
             {user?.about || 'Hey! I am using Talkative.'}
           </p>
         </div>
-        <FaChevronRight className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
+        <FaChevronRight className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
       </motion.div>
 
       {/* Settings groups */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {settingsGroups.map((group) => (
           <div key={group.title}>
-            <p className={`text-xs font-semibold uppercase tracking-wider mb-2 px-1 ${
-              isDark ? 'text-[#8696a0]' : 'text-gray-400'
+            <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 px-1 ${
+              isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'
             }`}>
               {group.title}
             </p>
             <div className={`rounded-2xl overflow-hidden border ${
-              isDark ? 'border-[#202c33]' : 'border-gray-100'
+              isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'
             }`}>
               {group.items.map((item, idx) => {
                 const Icon = item.icon;
@@ -353,22 +361,22 @@ const Setting = () => {
                     <div
                       key={item.id}
                       className={`flex items-center gap-4 p-4 ${
-                        isDark ? 'bg-[#202c33]' : 'bg-gray-50'
+                        isDark ? 'bg-[#27272A]' : 'bg-white'
                       }`}
                     >
-                      <div className="w-9 h-9 bg-[#00a884]/20 rounded-xl flex items-center justify-center">
-                        <Icon className="text-[#00a884] w-4 h-4" />
+                      <div className="w-9 h-9 bg-[#F97316]/10 rounded-xl flex items-center justify-center">
+                        <Icon className="text-[#F97316] w-4 h-4" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{item.label}</p>
-                        <p className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>{item.desc}</p>
+                        <p className="font-bold text-sm">{item.label}</p>
+                        <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{item.desc}</p>
                       </div>
                       {/* Toggle switch */}
                       <button
                         id="theme-toggle"
                         onClick={() => setTheme(isDark ? 'light' : 'dark')}
                         className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${
-                          isDark ? 'bg-[#00a884]' : 'bg-gray-300'
+                          isDark ? 'accent-gradient' : 'bg-[#E7E5E4]'
                         }`}
                       >
                         <motion.div
@@ -376,7 +384,7 @@ const Setting = () => {
                           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           className="absolute top-1 w-5 h-5 bg-white rounded-full shadow flex items-center justify-center"
                         >
-                          {isDark ? <IoMoon className="text-[#00a884] w-3 h-3" /> : <IoSunny className="text-yellow-500 w-3 h-3" />}
+                          {isDark ? <IoMoon className="text-[#F97316] w-3 h-3" /> : <IoSunny className="text-amber-500 w-3 h-3" />}
                         </motion.div>
                       </button>
                     </div>
@@ -389,17 +397,17 @@ const Setting = () => {
                     whileHover={{ x: 2 }}
                     onClick={() => setActiveSection(item.id)}
                     className={`flex items-center gap-4 p-4 cursor-pointer ${
-                      !isLast ? `border-b ${isDark ? 'border-[#18222d]' : 'border-gray-100'}` : ''
-                    } ${isDark ? 'bg-[#202c33] hover:bg-[#2a3942]' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      !isLast ? `border-b ${isDark ? 'border-[#3F3F46]' : 'border-[#E7E5E4]'}` : ''
+                    } ${isDark ? 'hover:bg-[#323238]' : 'hover:bg-[#F5F5F4]'}`}
                   >
-                    <div className="w-9 h-9 bg-[#00a884]/20 rounded-xl flex items-center justify-center">
-                      <Icon className="text-[#00a884] w-4 h-4" />
+                    <div className="w-9 h-9 bg-[#F97316]/10 rounded-xl flex items-center justify-center">
+                      <Icon className="text-[#F97316] w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{item.label}</p>
-                      <p className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>{item.desc}</p>
+                      <p className="font-bold text-sm">{item.label}</p>
+                      <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{item.desc}</p>
                     </div>
-                    <FaChevronRight className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
+                    <FaChevronRight className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
                   </motion.div>
                 );
               })}
@@ -413,12 +421,16 @@ const Setting = () => {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleLogout}
-          className="w-full flex items-center gap-4 p-4 rounded-2xl border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+          className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition ${
+            isDark
+              ? 'border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10'
+              : 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100'
+          }`}
         >
-          <div className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center">
+          <div className="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center">
             <FaSignOutAlt className="w-4 h-4 text-red-500" />
           </div>
-          <span className="font-medium text-sm">Log Out</span>
+          <span className="font-bold text-sm">Log Out</span>
         </motion.button>
       </div>
     </div>

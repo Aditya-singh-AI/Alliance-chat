@@ -10,13 +10,14 @@ const Spinner = ({ size = 'sm', color = 'white' }) => {
 
   const colorMap = {
     white: 'border-white border-t-transparent',
-    purple: 'border-[#00a884] border-t-transparent',
-    gray: 'border-gray-400 border-t-transparent',
+    purple: 'border-[#F97316] border-t-transparent',
+    orange: 'border-[#F97316] border-t-transparent',
+    gray: 'border-zinc-500 border-t-transparent',
   };
 
   return (
     <div
-      className={`${sizeMap[size]} ${colorMap[color]} rounded-full animate-spin`}
+      className={`${sizeMap[size] || sizeMap.sm} ${colorMap[color] || colorMap.white} rounded-full animate-spin`}
       role="status"
       aria-label="Loading"
     />
