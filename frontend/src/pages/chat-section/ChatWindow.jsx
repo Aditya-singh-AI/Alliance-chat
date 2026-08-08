@@ -45,7 +45,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const lastSeen = getUserLastSeen(contactId) || selectedContact?.lastSeen;
   const isTyping = isUserTyping(contactId, currentConversation);
 
-  const scrollToBottom = () => { messageEndRef.current?.scrollIntoView({ behavior: "smooth" }); };
+  const scrollToBottom = (behavior = "smooth") => { messageEndRef.current?.scrollIntoView({ behavior, block: "end" }); };
   useEffect(() => { scrollToBottom(); }, [messages]);
 
   // Handle dynamic visual viewport resize when mobile keyboard pops up
@@ -209,7 +209,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
       </div>
 
       {/* Messages Scroll Area */}
-      <div className={`flex-1 px-4 py-3 overflow-y-auto space-y-1 ${isDark ? "chat-pattern-dark" : "chat-pattern-light"}`}>
+      <div className={`flex-1 min-h-0 px-3 sm:px-4 pt-3 pb-12 overflow-y-auto overscroll-contain space-y-2.5 touch-pan-y ${isDark ? "chat-pattern-dark" : "chat-pattern-light"}`}>
         {loading && (
           <div className="flex justify-center py-4">
             <span className={`text-xs px-4 py-1.5 rounded-xl font-medium ${isDark ? "bg-[#27272A] text-[#71717A]" : "bg-white text-[#A8A29E] shadow-sm"}`}>

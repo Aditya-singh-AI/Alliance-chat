@@ -93,13 +93,13 @@ const Layout = ({ children }) => {
     const deltaY = touchStartRef.current.y - touchEndY;
     const duration = Date.now() - touchStartRef.current.time;
 
-    // Ignore slow swipes or vertical scrolls
-    if (duration > 500 || Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaX) < 50) return;
+    // Strict check: Ignore any touch with vertical movement or slow drag to avoid scroll interference
+    if (duration > 500 || Math.abs(deltaY) * 1.5 > Math.abs(deltaX) || Math.abs(deltaX) < 60) return;
 
     // If chat window is open on mobile
     if (selectedContact) {
-      // Swipe right from left edge closes active chat
-      if (touchStartRef.current.x < 80 && deltaX < -50) {
+      // Only close if swipe originates from far left edge (< 30px)
+      if (touchStartRef.current.x < 30 && deltaX < -80) {
         setSelectedContact(null);
       }
       return;
@@ -112,12 +112,12 @@ const Layout = ({ children }) => {
 
     if (currentIndex === -1) return;
 
-    if (deltaX > 50 && currentIndex < routes.length - 1) {
+    if (deltaX > 60 && currentIndex < routes.length - 1) {
       // Swipe Left -> Next Tab
       const nextRoute = routes[currentIndex + 1];
       setActiveTab(tabMap[nextRoute]);
       navigate(nextRoute);
-    } else if (deltaX < -50 && currentIndex > 0) {
+    } else if (deltaX < -60 && currentIndex > 0) {
       // Swipe Right -> Previous Tab
       const prevRoute = routes[currentIndex - 1];
       setActiveTab(tabMap[prevRoute]);

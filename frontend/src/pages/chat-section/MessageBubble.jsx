@@ -35,7 +35,7 @@ const MessageBubble = ({ message }) => {
 
   return (
     <div className={`flex ${isUserMessage ? "justify-end" : "justify-start"} group relative mb-1.5 select-none`}>
-      <div className="relative max-w-[75%] sm:max-w-[65%]">
+      <div className="relative max-w-[85%] sm:max-w-[70%]">
         {/* Hover buttons */}
         <div className={`absolute top-1 ${isUserMessage ? "-left-12" : "-right-12"} opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-0.5`}>
           <button onClick={() => setShowReactionsMenu(!showReactionsMenu)}
