@@ -34,13 +34,13 @@ export default function Setting() {
 
   const menuItems = [
     {
-      icon: <FaUser className="text-purple-400" />,
+      icon: <FaUser className="text-[#00a884]" />,
       label: 'Edit Profile Details',
       desc: 'Name, photo, about',
       onClick: () => setActiveTab('profile'),
     },
     {
-      icon: <FaPalette className="text-cyan-400" />,
+      icon: <FaPalette className="text-[#00a884]" />,
       label: 'Toggle Theme',
       desc: isDark ? 'Currently Dark mode' : 'Currently Light mode',
       onClick: handleToggleTheme,
@@ -73,7 +73,7 @@ export default function Setting() {
           <img
             src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
             alt={user?.username}
-            className="w-16 h-16 rounded-full object-cover border-2 border-purple-500"
+            className="w-16 h-16 rounded-full object-cover border-2 border-[#00a884]"
           />
           <div>
             <h2 className="font-bold text-lg">{user?.username}</h2>
@@ -95,7 +95,7 @@ export default function Setting() {
                 ${isDark ? 'hover:bg-[#2a3942]' : 'hover:bg-gray-50'}`}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-[#00a884]/15 flex items-center justify-center">
                   {item.icon}
                 </div>
                 <div className="text-left">
@@ -104,7 +104,7 @@ export default function Setting() {
                 </div>
               </div>
               {item.badge && (
-                <span className="text-xs bg-gradient-to-r from-purple-600 to-cyan-500 text-white px-2 py-0.5 rounded-full font-bold">
+                <span className="text-xs bg-[#00a884] text-white px-2 py-0.5 rounded-full font-bold">
                   {item.badge}
                 </span>
               )}

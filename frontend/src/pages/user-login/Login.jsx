@@ -173,9 +173,9 @@ const Login = () => {
 
   // ── Progress bar ───────────────────────────────────────────────────────
   const ProgressBar = () => (
-    <div className={`w-full rounded-full h-1.5 mb-8 overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+    <div className={`w-full rounded-full h-1 mb-8 overflow-hidden ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`}>
       <motion.div
-        className="h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400"
+        className="h-1 rounded-full bg-[#00a884]"
         animate={{ width: `${(step / 3) * 100}%` }}
         transition={{ duration: 0.5, ease: 'easeInOut' }}
       />
@@ -183,34 +183,34 @@ const Login = () => {
   );
 
   const inputClass = (hasError) =>
-    `w-full p-3 rounded-xl border outline-none transition-all focus:ring-2 focus:ring-purple-500 ${hasError ? 'border-red-500' : isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-800'}`;
+    `w-full p-3 rounded-xl border outline-none transition-all focus:ring-2 focus:ring-[#00a884]/40 focus:border-[#00a884] ${hasError ? 'border-red-500' : isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef] placeholder-[#8696a0]' : 'bg-[#f0f2f5] border-gray-200 text-gray-800 placeholder-gray-500'}`;
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 overflow-hidden relative ${isDark ? 'bg-gray-950' : 'bg-gradient-to-br from-purple-50 via-white to-cyan-50'}`}>
-      {/* Background decoration */}
+    <div className={`min-h-screen flex items-center justify-center p-4 overflow-hidden relative ${isDark ? 'bg-[#0b141a]' : 'bg-[#f0f2f5]'}`}>
+      {/* Subtle background accent glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full opacity-10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full opacity-10 blur-3xl" />
+        <div className="absolute -top-60 -right-60 w-[480px] h-[480px] bg-[#00a884] rounded-full opacity-[0.04] blur-[100px]" />
+        <div className="absolute -bottom-60 -left-60 w-[480px] h-[480px] bg-[#00a884] rounded-full opacity-[0.03] blur-[100px]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: -30, scale: 0.95 }}
+        initial={{ opacity: 0, y: -20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className={`w-full max-w-md p-8 rounded-3xl shadow-2xl relative z-10 border ${isDark ? 'bg-gray-900 border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-800'}`}
+        transition={{ duration: 0.4 }}
+        className={`w-full max-w-md p-8 rounded-2xl shadow-2xl relative z-10 border ${isDark ? 'bg-[#111b21] border-[#202c33] text-[#e9edef]' : 'bg-white border-gray-200 text-gray-800'}`}
       >
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
           <motion.div
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="w-16 h-16 bg-gradient-to-br from-purple-600 to-cyan-400 rounded-2xl flex items-center justify-center shadow-xl mb-3"
+            animate={{ rotate: [0, 3, -3, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="w-14 h-14 bg-[#00a884] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00a884]/20 mb-3"
           >
-            <IoChatbubblesSharp className="w-9 h-9 text-white" />
+            <IoChatbubblesSharp className="w-8 h-8 text-white" />
           </motion.div>
-          <h1 className="text-2xl font-bold gradient-text">Talkative</h1>
-          <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-            {step === 1 ? 'Create your account' : step === 2 ? 'Verify your identity' : 'Set up your profile'}
+          <h1 className="text-2xl font-bold text-[#00a884]">Talkative</h1>
+          <p className={`text-xs mt-1 ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
+            {step === 1 ? 'Sign in to continue' : step === 2 ? 'Verify your identity' : 'Complete your profile'}
           </p>
         </div>
 
@@ -220,7 +220,7 @@ const Login = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-red-400 text-sm text-center mb-4 p-3 bg-red-500/10 rounded-xl"
+            className="text-red-400 text-sm text-center mb-4 p-3 bg-red-500/10 rounded-xl border border-red-500/20"
           >
             {generalError}
           </motion.p>
@@ -238,7 +238,7 @@ const Login = () => {
               onSubmit={onLoginSubmit}
               className="space-y-4"
             >
-              <p className={`text-sm text-center mb-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-sm text-center mb-4 ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
                 Enter your phone or email to receive a verification code
               </p>
 
@@ -248,39 +248,39 @@ const Login = () => {
                   id="country-selector"
                   type="button"
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className={`flex items-center gap-1 p-3 rounded-xl border text-sm font-medium w-1/3 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'}`}
+                  className={`flex items-center gap-1 p-3 rounded-xl border text-sm font-medium w-1/3 transition-colors ${isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef] hover:bg-[#2a3942]' : 'bg-[#f0f2f5] border-gray-200 hover:bg-gray-200'}`}
                 >
                   <span>{selectedCountry.flag}</span>
                   <span className="text-xs">{selectedCountry.dialCode}</span>
-                  <FaAngleDown className="ml-auto text-xs" />
+                  <FaAngleDown className="ml-auto text-xs opacity-60" />
                 </button>
 
                 {showDropdown && (
-                  <div className={`absolute left-0 top-14 w-full z-50 rounded-xl border shadow-2xl max-h-56 overflow-y-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <div className={`absolute left-0 top-14 w-full z-50 rounded-xl border shadow-2xl max-h-56 overflow-y-auto ${isDark ? 'bg-[#111b21] border-[#202c33]' : 'bg-white border-gray-200'}`}>
                     <input
                       type="text"
                       placeholder="Search country..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`w-full p-2.5 text-sm border-b outline-none sticky top-0 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200'}`}
+                      className={`w-full p-2.5 text-sm border-b outline-none sticky top-0 ${isDark ? 'bg-[#111b21] border-[#202c33] text-[#e9edef] placeholder-[#8696a0]' : 'bg-white border-gray-200'}`}
                     />
                     {filteredCountries.map((c) => (
                       <button
                         key={c.code}
                         type="button"
                         onClick={() => { setSelectedCountry(c); setShowDropdown(false); setSearchTerm(''); }}
-                        className={`w-full text-left p-3 text-sm flex gap-3 items-center ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
+                        className={`w-full text-left p-3 text-sm flex gap-3 items-center transition-colors ${isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-50'}`}
                       >
                         <span>{c.flag}</span>
                         <span className="truncate">{c.name}</span>
-                        <span className="ml-auto text-gray-400 text-xs">{c.dialCode}</span>
+                        <span className={`ml-auto text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>{c.dialCode}</span>
                       </button>
                     ))}
                   </div>
                 )}
 
                 <div className="flex-1 relative">
-                  <FaPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                  <FaPhone className={`absolute left-3 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
                   <input
                     id="phone-input"
                     type="text"
@@ -295,14 +295,14 @@ const Login = () => {
 
               {/* Divider */}
               <div className="flex items-center gap-3">
-                <div className={`flex-1 h-px ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-400'}`}>OR</span>
-                <div className={`flex-1 h-px ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-px ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
+                <span className={`text-xs font-medium ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>OR</span>
+                <div className={`flex-1 h-px ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
               </div>
 
               {/* Email input */}
               <div className="relative">
-                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <FaEnvelope className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
                 <input
                   id="email-input"
                   type="email"
@@ -319,7 +319,7 @@ const Login = () => {
                 id="send-otp-btn"
                 type="submit"
                 disabled={loading}
-                className="w-full p-3 bg-gradient-to-r from-purple-600 to-cyan-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+                className="w-full p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#00a884]/15 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Spinner /> : 'Send Verification Code'}
               </button>
@@ -337,14 +337,14 @@ const Login = () => {
               onSubmit={submitOtp(onOTPSubmit)}
               className="space-y-5"
             >
-              <p className={`text-sm text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-sm text-center ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
                 Enter the 6-digit code sent to your {userPhoneData?.email ? 'email' : 'phone'}
               </p>
 
               {userPhoneData?.fallbackOtp && (
-                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-center">
-                  <p className="text-xs text-purple-400 font-semibold mb-1">Verification Code:</p>
-                  <span className="text-2xl font-extrabold tracking-widest text-purple-400 font-mono">
+                <div className={`p-3 rounded-xl text-center border ${isDark ? 'bg-[#00a884]/10 border-[#00a884]/20' : 'bg-[#00a884]/5 border-[#00a884]/15'}`}>
+                  <p className="text-xs text-[#00a884] font-semibold mb-1">Verification Code:</p>
+                  <span className="text-2xl font-extrabold tracking-widest text-[#00a884] font-mono">
                     {userPhoneData.fallbackOtp}
                   </span>
                 </div>
@@ -360,7 +360,7 @@ const Login = () => {
                     value={digit}
                     onChange={(e) => handleOTPChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOTPKeyDown(idx, e)}
-                    className={`w-12 h-12 text-center rounded-xl border outline-none text-lg font-bold focus:ring-2 focus:ring-purple-500 transition-all ${errOtp.otp ? 'border-red-500' : isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'}`}
+                    className={`w-12 h-12 text-center rounded-xl border outline-none text-lg font-bold focus:ring-2 focus:ring-[#00a884]/40 focus:border-[#00a884] transition-all ${errOtp.otp ? 'border-red-500' : isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef]' : 'bg-[#f0f2f5] border-gray-200'}`}
                   />
                 ))}
               </div>
@@ -370,7 +370,7 @@ const Login = () => {
                 id="verify-otp-btn"
                 type="submit"
                 disabled={loading}
-                className="w-full p-3 bg-gradient-to-r from-purple-600 to-cyan-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+                className="w-full p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#00a884]/15 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Spinner /> : 'Verify Code'}
               </button>
@@ -378,7 +378,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={handleBack}
-                className={`w-full p-2 flex items-center justify-center gap-2 text-sm ${isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`w-full p-2 flex items-center justify-center gap-2 text-sm transition-colors ${isDark ? 'text-[#8696a0] hover:text-[#e9edef]' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 <FaArrowLeft className="text-xs" /> Wrong contact? Go back
               </button>
@@ -398,18 +398,18 @@ const Login = () => {
             >
               {/* Avatar preview */}
               <div className="flex flex-col items-center mb-2">
-                <div className="relative w-24 h-24 rounded-full border-4 border-purple-500 overflow-hidden shadow-xl mb-2">
+                <div className="relative w-24 h-24 rounded-full border-[3px] border-[#00a884] overflow-hidden shadow-lg shadow-[#00a884]/10 mb-2">
                   <img
                     src={profilePicturePreview || selectedAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
-                  <label htmlFor="file-upload" className="absolute bottom-0 right-0 bg-gradient-to-r from-purple-600 to-cyan-500 text-white p-1.5 rounded-full cursor-pointer hover:opacity-90">
+                  <label htmlFor="file-upload" className="absolute bottom-0 right-0 bg-[#00a884] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#008f6f] transition-colors">
                     <FaPlus className="w-3 h-3" />
                   </label>
                   <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                 </div>
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Upload photo or pick an avatar</span>
+                <span className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>Upload photo or pick an avatar</span>
               </div>
 
               {/* Avatar presets */}
@@ -425,7 +425,7 @@ const Login = () => {
                       src={url}
                       alt={`Avatar ${idx}`}
                       onClick={() => { setSelectedAvatar(url); setProfilePictureFile(null); setProfilePicturePreview(null); }}
-                      className={`w-12 h-12 rounded-full cursor-pointer border-2 transition-all ${isSelected ? 'border-purple-500 shadow-lg shadow-purple-500/30' : 'border-transparent'}`}
+                      className={`w-12 h-12 rounded-full cursor-pointer border-2 transition-all ${isSelected ? 'border-[#00a884] shadow-md shadow-[#00a884]/20' : isDark ? 'border-[#202c33]' : 'border-gray-200'}`}
                     />
                   );
                 })}
@@ -433,7 +433,7 @@ const Login = () => {
 
               {/* Username */}
               <div className="relative">
-                <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <FaUser className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
                 <input
                   id="username-input"
                   type="text"
@@ -450,11 +450,11 @@ const Login = () => {
                   id="agreed-checkbox"
                   type="checkbox"
                   {...regProfile('agreed')}
-                  className="rounded text-purple-500 focus:ring-purple-500 w-4 h-4"
+                  className="rounded text-[#00a884] focus:ring-[#00a884] w-4 h-4 accent-[#00a884]"
                 />
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
                   I agree to the{' '}
-                  <span className="text-purple-500 cursor-pointer hover:underline">Terms & Conditions</span>
+                  <span className="text-[#00a884] cursor-pointer hover:underline">Terms & Conditions</span>
                 </span>
               </label>
               {errProfile.agreed && <p className="text-red-400 text-xs">{errProfile.agreed.message}</p>}
@@ -463,7 +463,7 @@ const Login = () => {
                 id="create-account-btn"
                 type="submit"
                 disabled={loading || !agreedWatched}
-                className={`w-full p-3 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg ${loading || !agreedWatched ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-cyan-500 hover:opacity-90'}`}
+                className={`w-full p-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md ${loading || !agreedWatched ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-[#00a884] hover:bg-[#008f6f] shadow-[#00a884]/15'}`}
               >
                 {loading ? <Spinner /> : 'Create Account'}
               </button>

@@ -161,7 +161,7 @@ const Status = () => {
           <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>My Status</p>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className={`w-14 h-14 rounded-full border-2 overflow-hidden ${myStatuses.length > 0 ? 'border-purple-500' : 'border-dashed border-gray-400'}`}>
+              <div className={`w-14 h-14 rounded-full border-2 overflow-hidden ${myStatuses.length > 0 ? 'border-[#00a884]' : 'border-dashed border-gray-400'}`}>
                 <img
                   src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
                   alt="My status"
@@ -169,7 +169,7 @@ const Status = () => {
                 />
               </div>
               {/* Upload button */}
-              <label htmlFor="status-upload" className="absolute -bottom-1 -right-1 bg-gradient-to-r from-purple-600 to-cyan-500 text-white w-6 h-6 rounded-full flex items-center justify-center cursor-pointer shadow">
+              <label htmlFor="status-upload" className="absolute -bottom-1 -right-1 bg-[#00a884] text-white w-6 h-6 rounded-full flex items-center justify-center cursor-pointer shadow hover:bg-[#008f6f] transition-colors">
                 {uploading ? <Spinner size="sm" /> : <FaPlus className="text-xs" />}
               </label>
               <input id="status-upload" type="file" accept="image/*,video/*" onChange={handleFileUpload} className="hidden" />
@@ -185,7 +185,7 @@ const Status = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowTextInput(!showTextInput)}
-              className={`text-xs px-3 py-1.5 rounded-full font-semibold ${isDark ? 'bg-gray-800 text-purple-400 hover:bg-gray-700' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`}
+              className={`text-xs px-3 py-1.5 rounded-full font-semibold ${isDark ? 'bg-[#202c33] text-[#00a884] hover:bg-[#2a3942]' : 'bg-[#00a884]/10 text-[#00a884] hover:bg-[#00a884]/20'}`}
             >
               Text
             </motion.button>
@@ -206,13 +206,13 @@ const Status = () => {
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
                     placeholder="What's on your mind?"
-                    className={`flex-1 py-2 px-3 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
+                    className={`flex-1 py-2 px-3 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-[#00a884]/40 ${isDark ? 'bg-[#202c33] border-[#2a3942] text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
                   />
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={handleTextStatus}
                     disabled={uploading || !textContent.trim()}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-xs font-bold rounded-xl disabled:opacity-50"
+                    className="px-4 py-2 bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-bold rounded-xl disabled:opacity-50 transition-colors"
                   >
                     Post
                   </motion.button>
@@ -271,7 +271,7 @@ const Status = () => {
                   className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}
                 >
                   {/* Ring avatar */}
-                  <div className="w-14 h-14 rounded-full p-0.5 bg-gradient-to-br from-purple-500 to-cyan-400">
+                  <div className="w-14 h-14 rounded-full p-0.5 bg-[#00a884]">
                     <div className={`w-full h-full rounded-full overflow-hidden border-2 ${isDark ? 'border-gray-900' : 'border-white'}`}>
                       <img
                         src={statusGroup.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${statusGroup.userId}`}
@@ -345,7 +345,7 @@ const Status = () => {
               } else {
                 // Text status
                 return (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-700 to-cyan-600 p-10">
+                  <div className="flex items-center justify-center w-full h-full bg-[#111b21] p-10">
                     <p className="text-white text-2xl font-bold text-center max-w-md">{currentStory.content}</p>
                   </div>
                 );

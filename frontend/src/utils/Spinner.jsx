@@ -10,7 +10,7 @@ const Spinner = ({ size = 'sm', color = 'white' }) => {
 
   const colorMap = {
     white: 'border-white border-t-transparent',
-    purple: 'border-purple-500 border-t-transparent',
+    purple: 'border-[#00a884] border-t-transparent',
     gray: 'border-gray-400 border-t-transparent',
   };
 

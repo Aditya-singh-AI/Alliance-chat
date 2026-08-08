@@ -5,15 +5,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --emerald-accent: #00a884;
-  --emerald-hover: #008f6f;
-  --emerald-light: #d9fdd3;
+  /* Primary brand — refined teal, like WhatsApp/Telegram */
+  --accent: #00a884;
+  --accent-hover: #008f6f;
+  --accent-light: #d9fdd3;
+  --accent-muted: rgba(0, 168, 132, 0.12);
+
+  /* Dark palette — deep, elegant surfaces */
   --dark-bg: #0b141a;
   --dark-surface: #111b21;
   --dark-panel: #202c33;
+  --dark-elevated: #18222d;
   --dark-chat-bg: #0b141a;
   --dark-bubble-own: #005c4b;
   --dark-bubble-other: #202c33;
+  --dark-text: #e9edef;
+  --dark-text-muted: #8696a0;
+
+  /* Light palette — clean whites and warm grays */
+  --light-bg: #f0f2f5;
+  --light-surface: #ffffff;
+  --light-panel: #f0f2f5;
+  --light-chat-bg: #efeae2;
+  --light-bubble-own: #d9fdd3;
+  --light-bubble-other: #ffffff;
+  --light-text: #111b21;
+  --light-text-muted: #667781;
 }
 
 body {
@@ -107,4 +124,10 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Brand text color — clean single-color, no gradient */
+.brand-text {
+  color: #00a884;
+  font-weight: 700;
 }

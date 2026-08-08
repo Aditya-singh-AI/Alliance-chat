@@ -109,7 +109,7 @@ export default function Status() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsCreateOpen(true)}
-          className="p-3 bg-gradient-to-r from-purple-600 to-cyan-500 text-white rounded-full shadow-md"
+          className="p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-full shadow-md transition-colors"
         >
           <FaPlus size={14} />
         </motion.button>
@@ -120,7 +120,7 @@ export default function Status() {
 
         {/* My Status */}
         <div>
-          <h2 className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-3">My Status</h2>
+          <h2 className="text-xs font-semibold text-[#00a884] uppercase tracking-wider mb-3">My Status</h2>
           {myStatuses ? (
             <div className="space-y-2">
               {myStatuses.stories.map((story) => (
@@ -130,7 +130,7 @@ export default function Status() {
                   className={`p-3 rounded-xl flex items-center justify-between cursor-pointer shadow-sm ${isDark ? 'bg-[#202c33] hover:bg-[#2a3942]' : 'bg-white hover:bg-gray-50'}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-br from-purple-500 to-cyan-400">
+                    <div className="w-12 h-12 rounded-full p-0.5 bg-[#00a884]">
                       <div className={`w-full h-full rounded-full overflow-hidden border-2 ${isDark ? 'border-[#202c33]' : 'border-white'}`}>
                         <img
                           src={story.user.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${story.user._id}`}
@@ -168,7 +168,7 @@ export default function Status() {
 
         {/* Contact Updates */}
         <div>
-          <h2 className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-3">Recent Updates</h2>
+          <h2 className="text-xs font-semibold text-[#00a884] uppercase tracking-wider mb-3">Recent Updates</h2>
           {contactStatuses.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No updates from your contacts yet.</p>
           ) : (
@@ -182,7 +182,7 @@ export default function Status() {
                     onClick={() => handleOpenStory(latestStory)}
                     className={`p-3 rounded-xl flex items-center space-x-3 cursor-pointer shadow-sm ${isDark ? 'bg-[#202c33] hover:bg-[#2a3942]' : 'bg-white hover:bg-gray-50'}`}
                   >
-                    <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-br from-purple-500 to-cyan-400 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full p-0.5 bg-[#00a884] flex-shrink-0">
                       <div className={`w-full h-full rounded-full overflow-hidden border-2 ${isDark ? 'border-[#202c33]' : 'border-white'}`}>
                         <img
                           src={item.user.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${id}`}
@@ -235,7 +235,7 @@ export default function Status() {
                     >✕</button>
                   </div>
                 ) : (
-                  <label className={`w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition ${isDark ? 'border-gray-600 hover:border-purple-500' : 'border-gray-300 hover:border-purple-400'}`}>
+                  <label className={`w-full h-32 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition ${isDark ? 'border-gray-600 hover:border-[#00a884]' : 'border-gray-300 hover:border-[#00a884]'}`}>
                     <FaImage size={28} className="text-gray-400 mb-2" />
                     <span className="text-sm text-gray-400">Click to upload image</span>
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -246,12 +246,12 @@ export default function Status() {
                   onChange={(e) => setTextStatus(e.target.value)}
                   placeholder="What's on your mind?"
                   rows="3"
-                  className={`w-full p-3 rounded-xl border resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-[#111b21] border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
+                  className={`w-full p-3 rounded-xl border resize-none focus:outline-none focus:ring-2 focus:ring-[#00a884]/40 ${isDark ? 'bg-[#111b21] border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
+                  className="w-full py-3 bg-[#00a884] hover:bg-[#008f6f] text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 >
                   <FaPaperPlane size={13} />
                   <span>{loading ? 'Posting...' : 'Share Status'}</span>

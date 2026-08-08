@@ -69,7 +69,7 @@ export default function UserDetails() {
     }
   };
 
-  const fieldClass = `flex-1 p-1 bg-transparent border-b-2 border-purple-500 focus:outline-none ${isDark ? 'text-white' : 'text-gray-800'}`;
+  const fieldClass = `flex-1 p-1 bg-transparent border-b-2 border-[#00a884] focus:outline-none ${isDark ? 'text-white' : 'text-gray-800'}`;
 
   return (
     <div className={`h-full flex flex-col ${isDark ? 'bg-[#111b21] text-white' : 'bg-gray-100 text-gray-800'}`}>
@@ -93,7 +93,7 @@ export default function UserDetails() {
             <img
               src={previewUrl || user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
               alt="Avatar"
-              className="w-full h-full rounded-full object-cover border-4 border-purple-500"
+              className="w-full h-full rounded-full object-cover border-4 border-[#00a884]"
             />
             <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
               <FaCamera className="text-white text-2xl" />
@@ -106,7 +106,7 @@ export default function UserDetails() {
               animate={{ opacity: 1, y: 0 }}
               onClick={handleUploadImage}
               disabled={loading}
-              className="mt-3 px-5 py-1.5 bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-xs font-bold rounded-full hover:opacity-90 transition disabled:opacity-50"
+              className="mt-3 px-5 py-1.5 bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-bold rounded-full transition disabled:opacity-50"
             >
               {loading ? 'Uploading...' : 'Save Picture'}
             </motion.button>
@@ -115,7 +115,7 @@ export default function UserDetails() {
 
         {/* Username field */}
         <div className={`p-4 rounded-2xl shadow-sm ${isDark ? 'bg-[#202c33]' : 'bg-white'}`}>
-          <label className="text-xs text-purple-400 font-semibold block mb-2">Your Name</label>
+          <label className="text-xs text-[#00a884] font-semibold block mb-2">Your Name</label>
           <div className="flex items-center justify-between gap-2">
             {isEditingName ? (
               <>
@@ -137,7 +137,7 @@ export default function UserDetails() {
             ) : (
               <>
                 <span className="font-medium">{user?.username || '—'}</span>
-                <button onClick={() => setIsEditingName(true)} className="text-gray-400 hover:text-purple-400">
+                <button onClick={() => setIsEditingName(true)} className="text-gray-400 hover:text-[#00a884]">
                   <FaPen size={12} />
                 </button>
               </>
@@ -147,7 +147,7 @@ export default function UserDetails() {
 
         {/* About field */}
         <div className={`p-4 rounded-2xl shadow-sm ${isDark ? 'bg-[#202c33]' : 'bg-white'}`}>
-          <label className="text-xs text-purple-400 font-semibold block mb-2">About</label>
+          <label className="text-xs text-[#00a884] font-semibold block mb-2">About</label>
           <div className="flex items-center justify-between gap-2">
             {isEditingAbout ? (
               <>
@@ -171,7 +171,7 @@ export default function UserDetails() {
                 <span className={`font-medium text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   {user?.about || 'Hey there! I am using Talkative.'}
                 </span>
-                <button onClick={() => setIsEditingAbout(true)} className="text-gray-400 hover:text-purple-400 flex-shrink-0">
+                <button onClick={() => setIsEditingAbout(true)} className="text-gray-400 hover:text-[#00a884] flex-shrink-0">
                   <FaPen size={12} />
                 </button>
               </>
@@ -182,7 +182,7 @@ export default function UserDetails() {
         {/* Read-only info */}
         {(user?.email || user?.phoneNumber) && (
           <div className={`p-4 rounded-2xl shadow-sm space-y-3 ${isDark ? 'bg-[#202c33]' : 'bg-white'}`}>
-            <label className="text-xs text-purple-400 font-semibold block">Account Info</label>
+            <label className="text-xs text-[#00a884] font-semibold block">Account Info</label>
             {user?.email && (
               <div>
                 <p className="text-xs text-gray-500">Email</p>
