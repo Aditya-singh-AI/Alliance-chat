@@ -401,7 +401,9 @@ export const useChatStore = create((set, get) => ({
     const uId = (typeof userId === 'object' ? userId?._id || userId?.id : userId)?.toString();
 
     const userObj = get().onlineUsers.get(uId);
-    if (userObj && userObj.isOnline) return true;
+    if (userObj !== undefined && typeof userObj.isOnline === "boolean") {
+      return userObj.isOnline;
+    }
 
     return useSocketStore.getState().isUserOnline(uId);
   },

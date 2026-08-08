@@ -52,7 +52,7 @@ const ChatList = () => {
   const checkIsOnline = (contact) => {
     const contactIdStr = (contact?._id || contact?.id)?.toString();
     if (!contactIdStr) return false;
-    return Boolean(contact.isOnline) || onlineUsers.has(contactIdStr) || isUserOnline(contactIdStr);
+    return isUserOnline(contactIdStr);
   };
 
   return (

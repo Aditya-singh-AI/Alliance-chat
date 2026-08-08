@@ -43,7 +43,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   useOutsideClick(emojiPickerRef, () => setShowEmojiPicker(false));
 
   const contactId = (selectedContact?._id || selectedContact?.id)?.toString();
-  const isOnline = isUserOnline(contactId) || Boolean(selectedContact?.isOnline);
+  const isOnline = isUserOnline(contactId);
   const lastSeen = getUserLastSeen(contactId) || selectedContact?.lastSeen;
   const isTyping = isUserTyping(contactId, currentConversation);
 

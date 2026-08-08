@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import io from 'socket.io-client';
 import { useChatStore } from './useChatStore';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/+$/, "");
 
 let globalSocket = null;
+let presenceInterval = null;
 
 export const getGlobalSocket = () => globalSocket;
 
@@ -17,8 +18,15 @@ export const useSocketStore = create((set, get) => ({
 
     const uid = (typeof userId === 'object' ? userId?._id || userId?.id : userId)?.toString();
 
+    const requestOnlineUsers = (sock) => {
+      if (sock && sock.connected) {
+        sock.emit('user_connected', uid);
+        sock.emit('get_online_users');
+      }
+    };
+
     if (globalSocket?.connected) {
-      globalSocket.emit('user_connected', uid);
+      requestOnlineUsers(globalSocket);
       useChatStore.getState().initializeSocketListeners(globalSocket);
       return;
     }
@@ -34,8 +42,16 @@ export const useSocketStore = create((set, get) => ({
 
     socket.on('connect', () => {
       console.log('Socket connected successfully:', socket.id);
-      socket.emit('user_connected', uid);
+      requestOnlineUsers(socket);
       useChatStore.getState().initializeSocketListeners(socket);
+
+      // Start periodic 8-second presence refresh interval
+      if (presenceInterval) clearInterval(presenceInterval);
+      presenceInterval = setInterval(() => {
+        if (globalSocket?.connected) {
+          globalSocket.emit('get_online_users');
+        }
+      }, 8000);
     });
 
     // Received initial full list of online users from server
@@ -44,7 +60,7 @@ export const useSocketStore = create((set, get) => ({
         const next = new Set(userArray.map((id) => id.toString()));
         set({ onlineUsers: next });
         // Synchronize with chat store
-        const onlineMap = new Map();
+        const onlineMap = new Map(useChatStore.getState().onlineUsers);
         userArray.forEach((id) => onlineMap.set(id.toString(), { isOnline: true }));
         useChatStore.setState({ onlineUsers: onlineMap });
       }
@@ -66,7 +82,7 @@ export const useSocketStore = create((set, get) => ({
       // Synchronize with chat store
       useChatStore.setState((state) => {
         const nextMap = new Map(state.onlineUsers);
-        nextMap.set(strId, { isOnline, lastSeen });
+        nextMap.set(strId, { isOnline: Boolean(isOnline), lastSeen });
         return { onlineUsers: nextMap };
       });
     });
@@ -75,6 +91,10 @@ export const useSocketStore = create((set, get) => ({
   },
 
   disconnect: () => {
+    if (presenceInterval) {
+      clearInterval(presenceInterval);
+      presenceInterval = null;
+    }
     if (globalSocket) {
       globalSocket.disconnect();
       globalSocket = null;
