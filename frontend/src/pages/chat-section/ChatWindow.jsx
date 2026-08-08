@@ -36,7 +36,9 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const theme = useThemeStore((state) => state.theme);
   const currentUser = useChatStore((state) => state.currentUser);
 
-  const { messages, loading, sendMessage, fetchMessages, conversations, startTyping, stopTyping, isUserTyping, isUserOnline, getUserLastSeen, currentConversation, onlineUsers, typingUsers } = useChatStore();
+  const { messages, loading, sendMessage, fetchMessages, conversations, startTyping, stopTyping, isUserTyping, isUserOnline, getUserLastSeen, currentConversation } = useChatStore();
+  useChatStore((state) => state.onlineUsers);
+  useChatStore((state) => state.typingUsers);
 
   useOutsideClick(emojiPickerRef, () => setShowEmojiPicker(false));
 
