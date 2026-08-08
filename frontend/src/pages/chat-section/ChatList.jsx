@@ -13,7 +13,7 @@ const ChatList = () => {
   useUserStore();
   const { selectedContact, setSelectedContact } = useLayoutStore();
   const { theme } = useThemeStore();
-  const { onlineUsers } = useSocketStore();
+  useSocketStore((state) => state.onlineUsers);
   const { isUserOnline } = useChatStore();
 
   const [allUsers, setAllUsers] = useState([]);
