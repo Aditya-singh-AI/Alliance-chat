@@ -28,11 +28,13 @@ const formatDuration = (seconds) => {
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 };
 
+// Module-level helper for live socket
+const getSocket = () => getGlobalSocket() || useSocketStore.getState().socket;
+
 const VideoCallModel = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const storeSocket = useSocketStore((state) => state.socket);
-  const getSocket = () => getGlobalSocket() || storeSocket;
 
   const {
     currentCall,
@@ -46,13 +48,11 @@ const VideoCallModel = () => {
     peerConnection,
     isCallModelOpen,
     callStatus,
-    callStartTime,
     setCurrentCall,
     setCallActive,
     setLocalStream,
     setRemoteStream,
     setPeerConnection,
-    setCallModelOpen,
     setCallStatus,
     addIceCandidate,
     processQueuedIceCandidates,
@@ -229,7 +229,7 @@ const VideoCallModel = () => {
       });
     }
     endCall();
-  }, [currentCall, incomingCall, callType, callStatus, storeSocket, endCall, recordAndLogCall]);
+  }, [currentCall, incomingCall, callType, callStatus, endCall, recordAndLogCall]);
 
   // Create RTCPeerConnection and map track/candidate listeners
   const createPeerConnection = useCallback((stream) => {
@@ -277,7 +277,7 @@ const VideoCallModel = () => {
 
     setPeerConnection(pc);
     return pc;
-  }, [currentCall, incomingCall, storeSocket, setRemoteStream, setPeerConnection, setCallStatus, handleEndCall]);
+  }, [currentCall, incomingCall, setRemoteStream, setPeerConnection, setCallStatus, handleEndCall]);
 
   // ----------------------------------------------------
   // CALLER SEQUENCE: Triggered upon recipient acceptance
@@ -310,7 +310,7 @@ const VideoCallModel = () => {
       setCallStatus("failed");
       setTimeout(() => handleEndCall(), 2000);
     }
-  }, [currentCall, callType, storeSocket, initializeMedia, createPeerConnection, setCallStatus, handleEndCall]);
+  }, [currentCall, callType, initializeMedia, createPeerConnection, setCallStatus, handleEndCall]);
 
   // ----------------------------------------------------
   // RECEIVER SEQUENCE: Handle accept call click
@@ -347,7 +347,7 @@ const VideoCallModel = () => {
       setCallStatus("failed");
       setTimeout(() => handleEndCall(), 2000);
     }
-  }, [incomingCall, user, storeSocket, initializeMedia, createPeerConnection, setCurrentCall, clearIncomingCall, setCallStatus, handleEndCall]);
+  }, [incomingCall, user, initializeMedia, createPeerConnection, setCurrentCall, clearIncomingCall, setCallStatus, handleEndCall]);
 
   // Handle reject call click
   const handleRejectCall = useCallback(() => {
@@ -365,7 +365,7 @@ const VideoCallModel = () => {
       });
     }
     endCall();
-  }, [incomingCall, callType, storeSocket, endCall, recordAndLogCall]);
+  }, [incomingCall, callType, endCall, recordAndLogCall]);
 
   // ----------------------------------------------------
   // WEBRTC SIGNALING INBOUND EVENT HANDLERS
@@ -396,7 +396,7 @@ const VideoCallModel = () => {
     } catch (error) {
       console.error("Failed to handle WebRTC offer:", error);
     }
-  }, [storeSocket, processQueuedIceCandidates]);
+  }, [processQueuedIceCandidates]);
 
   // 2. Handle incoming WebRTC Answer
   const handleWebRtcAnswer = useCallback(async ({ answer }) => {

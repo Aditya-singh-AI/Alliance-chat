@@ -4,6 +4,9 @@ import { useUserStore } from "../../store/useUserStore";
 import { useSocketStore, getGlobalSocket } from "../../store/useSocketStore";
 import VideoCallModel from "./VideoCallModel";
 
+// Module-level helper for non-stale live socket
+const getSocket = () => getGlobalSocket() || useSocketStore.getState().socket;
+
 const VideoCallManager = () => {
   const {
     setIncomingCall,
@@ -17,9 +20,6 @@ const VideoCallManager = () => {
   const { user } = useUserStore();
   // Subscribe reactively so the component re-renders when the socket connects
   const storeSocket = useSocketStore((state) => state.socket);
-
-  // Always use the live global socket ref for emitting
-  const getSocket = () => getGlobalSocket() || storeSocket;
 
   // Handle incoming call event from socket
   const handleIncomingCall = useCallback(({ callerId, callerName, callerAvatar, callId, callType }) => {
@@ -97,14 +97,13 @@ const VideoCallManager = () => {
         profilePicture: user.profilePicture
       }
     });
-  }, [user, storeSocket, setCurrentCall, setCallType, setCallModelOpen, setCallStatus]);
+  }, [user, setCurrentCall, setCallType, setCallModelOpen, setCallStatus]);
 
   // Expose initiateCall function to Zustand store so ChatWindow buttons can use it
   useEffect(() => {
     useVideoCallStore.setState({ initiateCall });
   }, [initiateCall]);
 
-  // Pass the live socket to VideoCallModel
   return <VideoCallModel />;
 };
 
