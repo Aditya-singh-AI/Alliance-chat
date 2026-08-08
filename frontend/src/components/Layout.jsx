@@ -18,9 +18,7 @@ const Layout = ({ children }) => {
   // Connect socket globally once user is authenticated
   useEffect(() => {
     const userId = user?._id || user?.id;
-    if (userId) {
-      connectSocket(userId);
-    }
+    if (userId) { connectSocket(userId); }
   }, [user?._id, user?.id, connectSocket]);
 
   // Real-time responsive detection
@@ -34,7 +32,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className={`min-h-screen flex relative overflow-hidden font-sans select-none ${
-      isDark ? 'bg-[#0b141a] text-[#e9edef]' : 'bg-[#f0f2f5] text-gray-900'
+      isDark ? 'bg-[#09090B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
     }`}>
       {/* Sidebar: hidden on mobile when a chat is open */}
       {(!isMobile || !selectedContact) && (
@@ -52,8 +50,8 @@ const Layout = ({ children }) => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isMobile ? -60 : 0 }}
               transition={{ duration: 0.2 }}
-              className={`h-full overflow-hidden ${isMobile ? 'w-full' : 'w-[400px] lg:w-[420px] flex-shrink-0'} border-r ${
-                isDark ? 'border-[#202c33]' : 'border-gray-200'
+              className={`h-full overflow-hidden ${isMobile ? 'w-full' : 'w-[380px] lg:w-[400px] flex-shrink-0'} border-r ${
+                isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'
               }`}
             >
               {children}
@@ -73,18 +71,18 @@ const Layout = ({ children }) => {
               {selectedContact ? (
                 <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} />
               ) : (
-                /* Empty state for desktop when no chat is selected */
+                /* Empty state */
                 <div className={`h-full flex flex-col items-center justify-center text-center p-8 ${
-                  isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-[#f0f2f5] text-gray-800'
+                  isDark ? 'bg-[#09090B]' : 'bg-[#FAFAF9]'
                 }`}>
-                  <div className="w-24 h-24 bg-[#00a884]/10 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-12 h-12 text-[#00a884]" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 accent-gradient rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-orange-500/15">
+                    <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">Talkative Web</h3>
-                  <p className={`text-xs max-w-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                    Send and receive messages without keeping your phone online. Select a contact to get started.
+                  <h3 className="text-2xl font-extrabold mb-2 accent-gradient-text">Talkative</h3>
+                  <p className={`text-sm max-w-xs leading-relaxed ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                    Fast, secure messaging at your fingertips. Pick a conversation from the sidebar to begin.
                   </p>
                 </div>
               )}
@@ -97,57 +95,40 @@ const Layout = ({ children }) => {
       <AnimatePresence>
         {showThemeModal && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
             onClick={() => setShowThemeModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={`p-6 rounded-2xl shadow-2xl w-full max-w-sm border ${
-                isDark ? 'bg-[#111b21] text-[#e9edef] border-[#202c33]' : 'bg-white text-gray-900 border-gray-200'
+              className={`p-6 rounded-2xl shadow-2xl w-full max-w-sm border-2 ${
+                isDark ? 'bg-[#18181B] text-[#FAFAFA] border-[#27272A]' : 'bg-white text-[#0C0A09] border-[#E7E5E4]'
               }`}
             >
-              <h2 className="text-lg font-bold mb-1">Appearance</h2>
-              <p className={`text-xs mb-5 ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>Choose your preferred theme</p>
+              <h2 className="text-lg font-extrabold mb-1">Appearance</h2>
+              <p className={`text-xs mb-5 ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>Choose your vibe</p>
 
               <div className="space-y-3">
                 {['dark', 'light'].map((t) => (
-                  <label
-                    key={t}
-                    className={`flex items-center gap-4 p-3.5 rounded-xl cursor-pointer border-2 transition-all ${
-                      theme === t
-                        ? 'border-[#00a884] bg-[#00a884]/10'
-                        : isDark
-                        ? 'border-[#202c33] hover:border-[#2a3942]'
-                        : 'border-gray-200 hover:border-gray-300'
+                  <label key={t}
+                    className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer border-2 transition-all ${
+                      theme === t ? 'border-[#F97316] bg-[#F97316]/8' : isDark ? 'border-[#27272A] hover:border-[#3F3F46]' : 'border-[#E7E5E4] hover:border-[#D6D3D1]'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="theme"
-                      checked={theme === t}
-                      onChange={() => setTheme(t)}
-                      className="accent-[#00a884]"
-                    />
+                    <input type="radio" name="theme" checked={theme === t} onChange={() => setTheme(t)} className="accent-[#F97316]" />
                     <div>
-                      <p className="font-semibold text-sm capitalize">{t} Mode</p>
-                      <p className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                        {t === 'dark' ? 'WhatsApp/Telegram dark palette' : 'Clean & bright interface'}
+                      <p className="font-bold text-sm capitalize">{t} Mode</p>
+                      <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                        {t === 'dark' ? 'Sleek dark interface' : 'Clean bright interface'}
                       </p>
                     </div>
                   </label>
                 ))}
               </div>
 
-              <button
-                id="close-theme-modal"
-                onClick={() => setShowThemeModal(false)}
-                className="mt-5 w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white font-semibold text-sm rounded-xl transition-colors shadow-md"
+              <button id="close-theme-modal" onClick={() => setShowThemeModal(false)}
+                className="mt-5 w-full py-3 accent-gradient text-white font-bold text-sm rounded-2xl shadow-md shadow-orange-500/20 hover:brightness-110 transition-all"
               >
                 Done
               </button>

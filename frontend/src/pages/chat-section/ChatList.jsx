@@ -21,7 +21,6 @@ const ChatList = () => {
   const [modalSearchTerm, setModalSearchTerm] = useState('');
 
   const searchInputRef = useRef(null);
-
   const isDark = theme === 'dark';
 
   useEffect(() => {
@@ -29,80 +28,47 @@ const ChatList = () => {
       try {
         const res = await getAllUsers();
         if (res.status === 'success') setAllUsers(res.data);
-      } catch (err) {
-        console.error('Failed to load contacts:', err);
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { console.error('Failed to load contacts:', err); }
+      finally { setLoading(false); }
     };
     fetchUsers();
   }, []);
 
-  const filteredUsers = allUsers.filter((u) =>
-    u.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const modalFilteredUsers = allUsers.filter((u) =>
-    u.username?.toLowerCase().includes(modalSearchTerm.toLowerCase())
-  );
-
-  const handleOpenNewChat = () => {
-    setShowNewChatModal(true);
-  };
-
-  const handleSelectContact = (contact) => {
-    setSelectedContact(contact);
-    setShowNewChatModal(false);
-  };
+  const filteredUsers = allUsers.filter((u) => u.username?.toLowerCase().includes(searchTerm.toLowerCase()));
+  const modalFilteredUsers = allUsers.filter((u) => u.username?.toLowerCase().includes(modalSearchTerm.toLowerCase()));
+  const handleSelectContact = (contact) => { setSelectedContact(contact); setShowNewChatModal(false); };
 
   return (
-    <div className={`h-full flex flex-col select-none relative ${
-      isDark ? 'bg-[#111b21] text-[#e9edef]' : 'bg-white text-gray-900'
-    }`}>
+    <div className={`h-full flex flex-col select-none relative ${isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-white text-[#0C0A09]'}`}>
       {/* Header */}
-      <div className={`px-4 py-3.5 flex items-center justify-between border-b ${
-        isDark ? 'border-[#202c33]' : 'border-gray-100'
-      }`}>
+      <div className={`px-5 py-4 flex items-center justify-between`}>
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Chats</h2>
-          <p className={`text-xs font-medium ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
+          <h2 className="text-xl font-extrabold tracking-tight">Messages</h2>
+          <p className={`text-[11px] font-medium mt-0.5 ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
             {allUsers.length} {allUsers.length === 1 ? 'contact' : 'contacts'}
           </p>
         </div>
-        <motion.button
-          id="new-chat-btn"
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          onClick={handleOpenNewChat}
-          className="p-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-full shadow-md transition-all flex items-center justify-center"
+        <motion.button id="new-chat-btn" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          onClick={() => setShowNewChatModal(true)}
+          className="w-9 h-9 accent-gradient text-white rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20 hover:shadow-orange-500/30 transition-shadow"
           title="New Chat"
         >
-          <FaPlus className="w-3.5 h-3.5" />
+          <FaPlus className="w-3 h-3" />
         </motion.button>
       </div>
 
-      {/* Search Bar */}
-      <div className={`p-3 border-b ${isDark ? 'border-[#202c33]' : 'border-gray-100'}`}>
-        <div className="relative flex items-center">
-          <FaSearch className={`absolute left-3.5 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
-          <input
-            id="chat-search"
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search or start new chat"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none transition-colors ${
-              isDark
-                ? 'bg-[#202c33] text-[#e9edef] placeholder-[#8696a0] focus:bg-[#2a3942]'
-                : 'bg-[#f0f2f5] text-gray-900 placeholder-gray-500 focus:bg-gray-200/80'
+      {/* Search */}
+      <div className="px-4 pb-3">
+        <div className="relative">
+          <FaSearch className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
+          <input id="chat-search" ref={searchInputRef} type="text" placeholder="Search conversations..."
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm font-medium outline-none transition-all border ${
+              isDark ? 'bg-[#27272A] text-[#FAFAFA] placeholder-[#71717A] border-[#27272A] focus:border-[#F97316]/50' : 'bg-[#F5F5F4] text-[#0C0A09] placeholder-[#A8A29E] border-[#F5F5F4] focus:border-[#F97316]/50'
             }`}
           />
           {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3 text-xs text-gray-400 hover:text-gray-200"
-            >
+            <button onClick={() => setSearchTerm('')} className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
               <FaTimes />
             </button>
           )}
@@ -112,174 +78,131 @@ const ChatList = () => {
       {/* Contact List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col gap-1 p-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div className={`w-12 h-12 rounded-full ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
+              <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-[#27272A]/50' : 'bg-[#F5F5F4]/50'}`}>
+                <div className={`w-11 h-11 rounded-xl shimmer ${isDark ? 'bg-[#27272A]' : 'bg-[#E7E5E4]'}`} />
                 <div className="flex-1">
-                  <div className={`h-3.5 rounded w-2/3 mb-2 ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
-                  <div className={`h-2.5 rounded w-1/2 ${isDark ? 'bg-[#18222d]' : 'bg-gray-100'}`} />
+                  <div className={`h-3.5 rounded-lg w-2/3 mb-2 shimmer ${isDark ? 'bg-[#27272A]' : 'bg-[#E7E5E4]'}`} />
+                  <div className={`h-2.5 rounded-lg w-1/2 shimmer ${isDark ? 'bg-[#27272A]/60' : 'bg-[#E7E5E4]/60'}`} />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center p-4">
-            <p className={`text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>
-              {searchTerm ? 'No matching contacts found' : 'No contacts available'}
+            <p className={`text-sm font-medium ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+              {searchTerm ? 'No matching contacts' : 'No conversations yet'}
             </p>
           </div>
         ) : (
-          filteredUsers.map((contact) => {
-            const isSelected = selectedContact?._id === contact._id;
-            const lastMsg = contact.conversation?.lastMessage;
-            const unreadCount = contact.conversation?.unreadCount || 0;
-            const isOnline = contact.isOnline || onlineUsers.has(contact._id);
+          <div className="px-2 space-y-0.5">
+            {filteredUsers.map((contact) => {
+              const isSelected = selectedContact?._id === contact._id;
+              const lastMsg = contact.conversation?.lastMessage;
+              const unreadCount = contact.conversation?.unreadCount || 0;
+              const isOnline = contact.isOnline || onlineUsers.has(contact._id);
 
-            return (
-              <motion.div
-                key={contact._id}
-                id={`contact-${contact._id}`}
-                whileHover={{ x: 2 }}
-                onClick={() => setSelectedContact(contact)}
-                className={`flex items-center gap-3.5 px-4 py-3 cursor-pointer border-b transition-colors ${
-                  isDark ? 'border-[#202c33]' : 'border-gray-100'
-                } ${
-                  isSelected
-                    ? isDark
-                      ? 'bg-[#2a3942]'
-                      : 'bg-[#f0f2f5]'
-                    : isDark
-                      ? 'hover:bg-[#202c33]/70'
-                      : 'hover:bg-gray-50'
-                }`}
-              >
-                {/* Avatar with Online Dot */}
-                <div className="relative flex-shrink-0">
-                  <img
-                    src={contact.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contact._id}`}
-                    alt={contact.username}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  {isOnline && (
-                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#00a884] border-2 border-[#111b21] rounded-full online-badge" />
-                  )}
-                </div>
-
-                {/* Contact Name & Message Preview */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-semibold text-sm truncate">{contact.username}</h3>
-                    {lastMsg && (
-                      <span className={`text-xs flex-shrink-0 ml-1 ${
-                        isSelected
-                          ? 'text-[#00a884]'
-                          : isDark ? 'text-[#8696a0]' : 'text-gray-400'
-                      }`}>
-                        {formatTime(lastMsg.createdAt)}
-                      </span>
+              return (
+                <motion.div key={contact._id} id={`contact-${contact._id}`} whileHover={{ x: 2 }}
+                  onClick={() => setSelectedContact(contact)}
+                  className={`flex items-center gap-3 px-3 py-3 cursor-pointer rounded-xl transition-all ${
+                    isSelected
+                      ? isDark ? 'bg-[#F97316]/10 border border-[#F97316]/20' : 'bg-orange-50 border border-orange-200'
+                      : isDark ? 'hover:bg-[#27272A]/70 border border-transparent' : 'hover:bg-[#F5F5F4] border border-transparent'
+                  }`}
+                >
+                  {/* Avatar */}
+                  <div className="relative flex-shrink-0">
+                    <img src={contact.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contact._id}`}
+                      alt={contact.username} className="w-11 h-11 rounded-xl object-cover"
+                    />
+                    {isOnline && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#18181B] rounded-full online-badge" />
                     )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className={`text-xs truncate pr-2 ${
-                      isDark ? 'text-[#8696a0]' : 'text-gray-500'
-                    }`}>
-                      {lastMsg ? lastMsg.content : contact.about || 'Available'}
-                    </p>
-                    {unreadCount > 0 && (
-                      <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-[#00a884] text-white text-[11px] font-bold rounded-full flex items-center justify-center">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <h3 className="font-bold text-[13px] truncate">{contact.username}</h3>
+                      {lastMsg && (
+                        <span className={`text-[10px] flex-shrink-0 ml-2 font-medium ${
+                          isSelected ? 'text-[#F97316]' : isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'
+                        }`}>
+                          {formatTime(lastMsg.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs truncate pr-2 ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                        {lastMsg ? lastMsg.content : contact.about || 'Available'}
+                      </p>
+                      {unreadCount > 0 && (
+                        <span className="flex-shrink-0 min-w-[18px] h-[18px] px-1.5 accent-gradient text-white text-[10px] font-bold rounded-md flex items-center justify-center">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* New Chat Modal Popup */}
+      {/* New Chat Modal */}
       <AnimatePresence>
         {showNewChatModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
             onClick={() => setShowNewChatModal(false)}
           >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-[80vh] ${
-                isDark ? 'bg-[#111b21] text-[#e9edef] border-[#202c33]' : 'bg-white text-gray-900 border-gray-200'
+              className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border-2 flex flex-col max-h-[80vh] ${
+                isDark ? 'bg-[#18181B] text-[#FAFAFA] border-[#27272A]' : 'bg-white text-[#0C0A09] border-[#E7E5E4]'
               }`}
             >
-              {/* Modal Header */}
-              <div className={`p-4 flex items-center justify-between border-b ${
-                isDark ? 'border-[#202c33]' : 'border-gray-100'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <FaUserPlus className="text-[#00a884]" />
-                  <h3 className="font-bold text-base">New Conversation</h3>
+              <div className={`p-4 flex items-center justify-between border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 accent-gradient rounded-lg flex items-center justify-center">
+                    <FaUserPlus className="text-white text-xs" />
+                  </div>
+                  <h3 className="font-extrabold text-sm">New Chat</h3>
                 </div>
-                <button
-                  onClick={() => setShowNewChatModal(false)}
-                  className={`p-1.5 rounded-full hover:bg-gray-500/20 text-sm ${
-                    isDark ? 'text-[#8696a0]' : 'text-gray-500'
-                  }`}
+                <button onClick={() => setShowNewChatModal(false)}
+                  className={`p-1.5 rounded-lg hover:bg-[#27272A] text-sm ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}
                 >
                   <FaTimes />
                 </button>
               </div>
 
-              {/* Modal Search Input */}
-              <div className={`p-3 border-b ${isDark ? 'border-[#202c33]' : 'border-gray-100'}`}>
-                <div className="relative flex items-center">
-                  <FaSearch className={`absolute left-3.5 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Search contact name..."
-                    value={modalSearchTerm}
-                    onChange={(e) => setModalSearchTerm(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none ${
-                      isDark
-                        ? 'bg-[#202c33] text-[#e9edef] placeholder-[#8696a0]'
-                        : 'bg-[#f0f2f5] text-gray-900 placeholder-gray-500'
-                    }`}
+              <div className={`p-3 border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+                <div className="relative">
+                  <FaSearch className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
+                  <input type="text" autoFocus placeholder="Search contacts..."
+                    value={modalSearchTerm} onChange={(e) => setModalSearchTerm(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none border ${isDark ? 'bg-[#27272A] text-[#FAFAFA] placeholder-[#71717A] border-[#27272A]' : 'bg-[#F5F5F4] text-[#0C0A09] placeholder-[#A8A29E] border-[#F5F5F4]'}`}
                   />
                 </div>
               </div>
 
-              {/* Contacts Selection List */}
-              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
                 {modalFilteredUsers.length === 0 ? (
-                  <div className="p-8 text-center text-xs opacity-60">
-                    No contacts found.
-                  </div>
+                  <div className="p-8 text-center text-xs opacity-60">No contacts found.</div>
                 ) : (
                   modalFilteredUsers.map((user) => (
-                    <div
-                      key={user._id}
-                      onClick={() => handleSelectContact(user)}
-                      className={`flex items-center gap-3.5 p-3 rounded-xl cursor-pointer transition-colors ${
-                        isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-100'
-                      }`}
+                    <div key={user._id} onClick={() => handleSelectContact(user)}
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}
                     >
-                      <img
-                        src={user.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user._id}`}
-                        alt={user.username}
-                        className="w-10 h-10 rounded-full object-cover"
+                      <img src={user.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user._id}`}
+                        alt={user.username} className="w-10 h-10 rounded-xl object-cover"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm truncate">{user.username}</h4>
-                        <p className={`text-xs truncate ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                          {user.about || 'Available'}
-                        </p>
+                        <h4 className="font-bold text-sm truncate">{user.username}</h4>
+                        <p className={`text-xs truncate ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{user.about || 'Available'}</p>
                       </div>
                     </div>
                   ))

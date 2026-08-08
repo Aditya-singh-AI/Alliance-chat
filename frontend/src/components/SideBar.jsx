@@ -17,14 +17,7 @@ const SideBar = ({ isMobile, onThemeClick }) => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch (e) {
-      // Silently fail — clear user regardless
-    } finally {
-      disconnectSocket();
-      clearUser();
-    }
+    try { await logoutUser(); } catch (e) {} finally { disconnectSocket(); clearUser(); }
   };
 
   const handleProfileAvatarClick = () => {
@@ -41,115 +34,79 @@ const SideBar = ({ isMobile, onThemeClick }) => {
   const isDark = theme === 'dark';
 
   if (isMobile) {
-    // Bottom navigation bar for mobile
     return (
       <div className={`flex flex-row justify-around items-center w-full h-16 border-t absolute bottom-0 z-40 ${
-        isDark ? 'bg-[#111b21] border-[#202c33]' : 'bg-white border-gray-200 shadow-lg'
+        isDark ? 'bg-[#18181B]/95 border-[#27272A] backdrop-blur-xl' : 'bg-white/95 border-[#E7E5E4] backdrop-blur-xl shadow-lg'
       }`}>
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           return (
-            <Link
-              key={item.id}
-              to={item.path}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-1 p-2 transition-colors ${
-                isActive
-                  ? 'text-[#00a884]'
-                  : isDark
-                  ? 'text-[#8696a0] hover:text-[#e9edef]'
-                  : 'text-gray-500 hover:text-gray-900'
+            <Link key={item.id} to={item.path} onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${
+                isActive ? 'text-[#F97316]' : isDark ? 'text-[#71717A] hover:text-[#FAFAFA]' : 'text-[#A8A29E] hover:text-[#0C0A09]'
               }`}
             >
-              <Icon className="w-6 h-6" />
-              <span className="text-[10px] font-semibold">{item.label}</span>
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-bold">{item.label}</span>
+              {isActive && <motion.div layoutId="mobileTab" className="w-5 h-0.5 accent-gradient rounded-full" />}
             </Link>
           );
         })}
-        <button
-          onClick={handleLogout}
-          className={`flex flex-col items-center gap-1 p-2 transition-colors ${
-            isDark ? 'text-[#8696a0] hover:text-red-400' : 'text-gray-500 hover:text-red-500'
-          }`}
+        <button onClick={handleLogout}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${isDark ? 'text-[#71717A] hover:text-red-400' : 'text-[#A8A29E] hover:text-red-500'}`}
         >
-          <IoLogOutSharp className="w-6 h-6" />
-          <span className="text-[10px] font-semibold">Logout</span>
+          <IoLogOutSharp className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Exit</span>
         </button>
       </div>
     );
   }
 
-  // Vertical sidebar for desktop
   return (
-    <div className={`flex flex-col items-center w-16 h-screen border-r py-5 justify-between select-none z-20 ${
-      isDark ? 'bg-[#111b21] border-[#202c33]' : 'bg-[#f0f2f5] border-gray-200'
+    <div className={`flex flex-col items-center w-[72px] h-screen py-5 justify-between select-none z-20 ${
+      isDark ? 'bg-[#18181B] border-r border-[#27272A]' : 'bg-white border-r border-[#E7E5E4]'
     }`}>
-      {/* Top: Profile avatar — click to open profile settings */}
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="w-10 h-10 rounded-full border-2 border-[#00a884] p-[1.5px] overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-        onClick={handleProfileAvatarClick}
-        title="Profile Settings"
+      {/* Top: Profile avatar */}
+      <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+        className="w-10 h-10 rounded-xl accent-gradient p-[2px] cursor-pointer shadow-md shadow-orange-500/15 hover:shadow-orange-500/25 transition-shadow"
+        onClick={handleProfileAvatarClick} title="Profile"
       >
-        <img
-          src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id || 'default'}`}
-          alt="Profile"
-          className="w-full h-full object-cover rounded-full"
-        />
+        <div className={`w-full h-full rounded-[10px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
+          <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id || 'default'}`}
+            alt="Profile" className="w-full h-full object-cover"
+          />
+        </div>
       </motion.div>
 
-      {/* Central navigation links */}
-      <div className="flex flex-col gap-5">
+      {/* Navigation */}
+      <div className="flex flex-col gap-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           return (
-            <Link
-              key={item.id}
-              to={item.path}
-              onClick={() => setActiveTab(item.id)}
-              title={item.label}
+            <Link key={item.id} to={item.path} onClick={() => setActiveTab(item.id)} title={item.label}
               className="relative flex items-center justify-center"
             >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className={`p-3 rounded-2xl transition-all duration-200 ${
+              <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+                className={`p-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#00a884] text-white shadow-md shadow-[#00a884]/20'
+                    ? 'accent-gradient text-white shadow-md shadow-orange-500/20'
                     : isDark
-                    ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33]'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
+                      ? 'text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#27272A]'
+                      : 'text-[#A8A29E] hover:text-[#0C0A09] hover:bg-[#F5F5F4]'
                 }`}
               >
                 <Icon className="w-5 h-5" />
               </motion.div>
-
-              {/* Active indicator bar */}
-              {isActive && (
-                <motion.span
-                  layoutId="activeBar"
-                  className="absolute -left-3 w-1 h-6 bg-[#00a884] rounded-r-full"
-                />
-              )}
             </Link>
           );
         })}
       </div>
 
-      {/* Bottom: Logout button */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleLogout}
-        title="Logout"
-        className={`p-3 rounded-2xl transition-colors ${
-          isDark
-            ? 'text-[#8696a0] hover:text-red-400 hover:bg-[#202c33]'
-            : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-        }`}
+      {/* Logout */}
+      <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={handleLogout} title="Logout"
+        className={`p-3 rounded-xl transition-all ${isDark ? 'text-[#71717A] hover:text-red-400 hover:bg-red-500/10' : 'text-[#A8A29E] hover:text-red-500 hover:bg-red-50'}`}
       >
         <IoLogOutSharp className="w-5 h-5" />
       </motion.button>

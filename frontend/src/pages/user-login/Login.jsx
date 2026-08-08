@@ -40,7 +40,6 @@ const Login = () => {
 
   const isDark = theme === 'dark';
 
-  // Local states
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
@@ -59,16 +58,9 @@ const Login = () => {
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.dialCode.includes(searchTerm)
   );
 
-  // ── Form hooks ─────────────────────────────────────────────────────────
-  const { formState: { errors: errLogin } } =
-    useForm({ resolver: yupResolver(loginSchema) });
-
-  const { handleSubmit: submitOtp, setValue: setOtpVal, formState: { errors: errOtp } } =
-    useForm({ resolver: yupResolver(otpSchema) });
-
-  const { register: regProfile, handleSubmit: submitProfile, watch: watchProfile, formState: { errors: errProfile } } =
-    useForm({ resolver: yupResolver(profileSchema) });
-
+  const { formState: { errors: errLogin } } = useForm({ resolver: yupResolver(loginSchema) });
+  const { handleSubmit: submitOtp, setValue: setOtpVal, formState: { errors: errOtp } } = useForm({ resolver: yupResolver(otpSchema) });
+  const { register: regProfile, handleSubmit: submitProfile, watch: watchProfile, formState: { errors: errProfile } } = useForm({ resolver: yupResolver(profileSchema) });
   const agreedWatched = watchProfile('agreed');
 
   // ── Handlers ───────────────────────────────────────────────────────────
@@ -81,11 +73,7 @@ const Login = () => {
     }
     setLoading(true); setGeneralError('');
     try {
-      const res = await sendOTP(
-        phoneNumber ? selectedCountry.dialCode : null,
-        phoneNumber || null,
-        email || null
-      );
+      const res = await sendOTP(phoneNumber ? selectedCountry.dialCode : null, phoneNumber || null, email || null);
       if (res.status === 'success') {
         toast.info(res.message || 'Verification code sent!');
         const fallbackOtp = res.data?.devOtp || (res.message ? res.message.match(/\d{6}/)?.[0] : null);
@@ -102,13 +90,7 @@ const Login = () => {
     setLoading(true); setGeneralError('');
     const otpString = otp.join('');
     try {
-      const res = await verifyOTP(
-        userPhoneData?.phoneNumber || null,
-        userPhoneData?.phoneSuffix || null,
-        userPhoneData?.email || null,
-        otpString
-      );
-      // Backend may return { status:'success', data } OR { message, user, token }
+      const res = await verifyOTP(userPhoneData?.phoneNumber || null, userPhoneData?.phoneSuffix || null, userPhoneData?.email || null, otpString);
       const user = res.data?.user || res.user;
       if (res.status === 'success' || user) {
         toast.success('OTP verified!');
@@ -155,321 +137,250 @@ const Login = () => {
   };
 
   const handleOTPKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus();
-    }
+    if (e.key === 'Backspace' && !otp[index] && index > 0) document.getElementById(`otp-${index - 1}`)?.focus();
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setProfilePictureFile(file);
-      setProfilePicturePreview(URL.createObjectURL(file));
-      setSelectedAvatar(null);
-    }
+    if (file) { setProfilePictureFile(file); setProfilePicturePreview(URL.createObjectURL(file)); setSelectedAvatar(null); }
   };
 
   const handleBack = () => { setStep(1); setOtp(['', '', '', '', '', '']); setGeneralError(''); };
 
-  // ── Progress bar ───────────────────────────────────────────────────────
-  const ProgressBar = () => (
-    <div className={`w-full rounded-full h-1 mb-8 overflow-hidden ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`}>
-      <motion.div
-        className="h-1 rounded-full bg-[#00a884]"
-        animate={{ width: `${(step / 3) * 100}%` }}
-        transition={{ duration: 0.5, ease: 'easeInOut' }}
-      />
+  // ── Step indicator dots ──
+  const StepDots = () => (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {[1, 2, 3].map((s) => (
+        <motion.div
+          key={s}
+          animate={{ scale: step === s ? 1 : 0.75, opacity: step === s ? 1 : 0.3 }}
+          className={`rounded-full transition-all duration-300 ${step === s ? 'w-8 h-2 accent-gradient' : `w-2 h-2 ${isDark ? 'bg-zinc-700' : 'bg-gray-300'}`}`}
+        />
+      ))}
     </div>
   );
 
-  const inputClass = (hasError) =>
-    `w-full p-3 rounded-xl border outline-none transition-all focus:ring-2 focus:ring-[#00a884]/40 focus:border-[#00a884] ${hasError ? 'border-red-500' : isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef] placeholder-[#8696a0]' : 'bg-[#f0f2f5] border-gray-200 text-gray-800 placeholder-gray-500'}`;
+  const inputCls = (hasErr) =>
+    `w-full px-4 py-3.5 rounded-2xl border-2 outline-none transition-all duration-200 text-sm font-medium ${hasErr
+      ? 'border-red-500/60 focus:border-red-500'
+      : isDark
+        ? 'bg-[#18181B] border-[#27272A] text-[#FAFAFA] placeholder-[#71717A] focus:border-[#F97316] focus:bg-[#1C1C20]'
+        : 'bg-[#F5F5F4] border-[#E7E5E4] text-[#0C0A09] placeholder-[#A8A29E] focus:border-[#F97316] focus:bg-white'
+    }`;
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 overflow-hidden relative ${isDark ? 'bg-[#0b141a]' : 'bg-[#f0f2f5]'}`}>
-      {/* Subtle background accent glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-60 -right-60 w-[480px] h-[480px] bg-[#00a884] rounded-full opacity-[0.04] blur-[100px]" />
-        <div className="absolute -bottom-60 -left-60 w-[480px] h-[480px] bg-[#00a884] rounded-full opacity-[0.03] blur-[100px]" />
+    <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-[#FAFAF9]'}`}>
+      {/* Ambient glow effects */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-30%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.07] blur-[120px] bg-[#F97316]" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[100px] bg-[#FBBF24]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className={`w-full max-w-md p-8 rounded-2xl shadow-2xl relative z-10 border ${isDark ? 'bg-[#111b21] border-[#202c33] text-[#e9edef]' : 'bg-white border-gray-200 text-gray-800'}`}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className={`w-full max-w-[420px] relative z-10`}
       >
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <motion.div
-            animate={{ rotate: [0, 3, -3, 0] }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="w-14 h-14 bg-[#00a884] rounded-2xl flex items-center justify-center shadow-lg shadow-[#00a884]/20 mb-3"
-          >
-            <IoChatbubblesSharp className="w-8 h-8 text-white" />
-          </motion.div>
-          <h1 className="text-2xl font-bold text-[#00a884]">Talkative</h1>
-          <p className={`text-xs mt-1 ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-            {step === 1 ? 'Sign in to continue' : step === 2 ? 'Verify your identity' : 'Complete your profile'}
-          </p>
-        </div>
+        {/* Top accent bar */}
+        <div className="h-1.5 w-full accent-gradient rounded-t-3xl" />
 
-        <ProgressBar />
-
-        {generalError && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-red-400 text-sm text-center mb-4 p-3 bg-red-500/10 rounded-xl border border-red-500/20"
-          >
-            {generalError}
-          </motion.p>
-        )}
-
-        <AnimatePresence mode="wait">
-          {/* ── STEP 1: Phone / Email ──────────────────────────────────── */}
-          {step === 1 && (
-            <motion.form
-              key="step1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              onSubmit={onLoginSubmit}
-              className="space-y-4"
+        <div className={`px-8 pt-8 pb-10 rounded-b-3xl border border-t-0 shadow-2xl ${isDark
+          ? 'bg-[#18181B]/90 border-[#27272A] shadow-black/40 backdrop-blur-xl'
+          : 'bg-white/95 border-[#E7E5E4] shadow-stone-200/60 backdrop-blur-xl'
+        }`}>
+          {/* Brand */}
+          <div className="flex flex-col items-center mb-2">
+            <motion.div
+              animate={{ rotate: [0, 2, -2, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-12 h-12 accent-gradient rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 mb-4"
             >
-              <p className={`text-sm text-center mb-4 ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                Enter your phone or email to receive a verification code
-              </p>
+              <IoChatbubblesSharp className="w-6 h-6 text-white" />
+            </motion.div>
+            <h1 className="text-xl font-extrabold tracking-tight accent-gradient-text mb-1">Talkative</h1>
+            <p className={`text-xs font-medium ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+              {step === 1 ? 'Sign in to your account' : step === 2 ? 'Enter verification code' : 'Set up your profile'}
+            </p>
+          </div>
 
-              {/* Country + Phone row */}
-              <div className="flex gap-2 relative">
-                <button
-                  id="country-selector"
-                  type="button"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className={`flex items-center gap-1 p-3 rounded-xl border text-sm font-medium w-1/3 transition-colors ${isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef] hover:bg-[#2a3942]' : 'bg-[#f0f2f5] border-gray-200 hover:bg-gray-200'}`}
-                >
-                  <span>{selectedCountry.flag}</span>
-                  <span className="text-xs">{selectedCountry.dialCode}</span>
-                  <FaAngleDown className="ml-auto text-xs opacity-60" />
-                </button>
+          <StepDots />
 
-                {showDropdown && (
-                  <div className={`absolute left-0 top-14 w-full z-50 rounded-xl border shadow-2xl max-h-56 overflow-y-auto ${isDark ? 'bg-[#111b21] border-[#202c33]' : 'bg-white border-gray-200'}`}>
-                    <input
-                      type="text"
-                      placeholder="Search country..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`w-full p-2.5 text-sm border-b outline-none sticky top-0 ${isDark ? 'bg-[#111b21] border-[#202c33] text-[#e9edef] placeholder-[#8696a0]' : 'bg-white border-gray-200'}`}
+          {generalError && (
+            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+              className={`text-sm text-center mb-5 px-4 py-3 rounded-2xl border ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'}`}
+            >
+              {generalError}
+            </motion.div>
+          )}
+
+          <AnimatePresence mode="wait">
+            {/* ══════ STEP 1 ══════ */}
+            {step === 1 && (
+              <motion.form key="s1" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.25 }} onSubmit={onLoginSubmit} className="space-y-4">
+                {/* Phone row */}
+                <div className="flex gap-2 relative">
+                  <button id="country-selector" type="button" onClick={() => setShowDropdown(!showDropdown)}
+                    className={`flex items-center gap-1.5 px-3 py-3.5 rounded-2xl border-2 text-sm font-semibold w-[100px] flex-shrink-0 transition-all ${isDark ? 'bg-[#18181B] border-[#27272A] text-[#FAFAFA] hover:border-[#3F3F46]' : 'bg-[#F5F5F4] border-[#E7E5E4] hover:border-[#D6D3D1]'}`}
+                  >
+                    <span className="text-base">{selectedCountry.flag}</span>
+                    <span className="text-xs">{selectedCountry.dialCode}</span>
+                    <FaAngleDown className="ml-auto text-[10px] opacity-50" />
+                  </button>
+
+                  {showDropdown && (
+                    <div className={`absolute left-0 top-[56px] w-full z-50 rounded-2xl border-2 shadow-2xl max-h-56 overflow-y-auto ${isDark ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-[#E7E5E4]'}`}>
+                      <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                        className={`w-full p-3 text-sm border-b outline-none sticky top-0 ${isDark ? 'bg-[#18181B] border-[#27272A] text-white placeholder-[#71717A]' : 'bg-white border-[#E7E5E4]'}`}
+                      />
+                      {filteredCountries.map((c) => (
+                        <button key={c.code} type="button" onClick={() => { setSelectedCountry(c); setShowDropdown(false); setSearchTerm(''); }}
+                          className={`w-full text-left px-3 py-2.5 text-sm flex gap-3 items-center ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}
+                        >
+                          <span>{c.flag}</span><span className="truncate">{c.name}</span>
+                          <span className={`ml-auto text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{c.dialCode}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex-1 relative">
+                    <FaPhone className={`absolute left-4 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
+                    <input id="phone-input" type="text" placeholder="Phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)}
+                      className={`${inputCls(errLogin.phoneNumber)} pl-10`}
                     />
-                    {filteredCountries.map((c) => (
-                      <button
-                        key={c.code}
-                        type="button"
-                        onClick={() => { setSelectedCountry(c); setShowDropdown(false); setSearchTerm(''); }}
-                        className={`w-full text-left p-3 text-sm flex gap-3 items-center transition-colors ${isDark ? 'hover:bg-[#202c33]' : 'hover:bg-gray-50'}`}
-                      >
-                        <span>{c.flag}</span>
-                        <span className="truncate">{c.name}</span>
-                        <span className={`ml-auto text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>{c.dialCode}</span>
-                      </button>
-                    ))}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-4 py-1">
+                  <div className={`flex-1 h-px ${isDark ? 'bg-[#27272A]' : 'bg-[#E7E5E4]'}`} />
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-[#3F3F46]' : 'text-[#D6D3D1]'}`}>or</span>
+                  <div className={`flex-1 h-px ${isDark ? 'bg-[#27272A]' : 'bg-[#E7E5E4]'}`} />
+                </div>
+
+                {/* Email */}
+                <div className="relative">
+                  <FaEnvelope className={`absolute left-4 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
+                  <input id="email-input" type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)}
+                    className={`${inputCls(errLogin.email)} pl-11`}
+                  />
+                </div>
+
+                <button id="send-otp-btn" type="submit" disabled={loading}
+                  className="w-full py-3.5 accent-gradient text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                >
+                  {loading ? <Spinner /> : 'Continue →'}
+                </button>
+              </motion.form>
+            )}
+
+            {/* ══════ STEP 2 ══════ */}
+            {step === 2 && (
+              <motion.form key="s2" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.25 }} onSubmit={submitOtp(onOTPSubmit)} className="space-y-5">
+                <p className={`text-sm text-center ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
+                  Code sent to {userPhoneData?.email ? 'your email' : 'your phone'}
+                </p>
+
+                {userPhoneData?.fallbackOtp && (
+                  <div className={`p-4 rounded-2xl text-center border-2 border-dashed ${isDark ? 'border-[#F97316]/30 bg-[#F97316]/5' : 'border-orange-300 bg-orange-50'}`}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#F97316] mb-2">Dev Code</p>
+                    <span className="text-3xl font-extrabold tracking-[0.3em] text-[#F97316] font-mono">
+                      {userPhoneData.fallbackOtp}
+                    </span>
                   </div>
                 )}
 
-                <div className="flex-1 relative">
-                  <FaPhone className={`absolute left-3 top-1/2 -translate-y-1/2 text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
-                  <input
-                    id="phone-input"
-                    type="text"
-                    placeholder="Phone number"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className={`${inputClass(errLogin.phoneNumber)} pl-8`}
-                  />
-                </div>
-              </div>
-              {errLogin.phoneNumber && <p className="text-red-400 text-xs">{errLogin.phoneNumber.message}</p>}
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className={`flex-1 h-px ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
-                <span className={`text-xs font-medium ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`}>OR</span>
-                <div className={`flex-1 h-px ${isDark ? 'bg-[#202c33]' : 'bg-gray-200'}`} />
-              </div>
-
-              {/* Email input */}
-              <div className="relative">
-                <FaEnvelope className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
-                <input
-                  id="email-input"
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`${inputClass(errLogin.email)} pl-10`}
-                />
-              </div>
-              {errLogin.email && <p className="text-red-400 text-xs">{errLogin.email.message}</p>}
-              {errLogin['at-least-one'] && <p className="text-red-400 text-xs">{errLogin['at-least-one'].message}</p>}
-
-              <button
-                id="send-otp-btn"
-                type="submit"
-                disabled={loading}
-                className="w-full p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#00a884]/15 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? <Spinner /> : 'Send Verification Code'}
-              </button>
-            </motion.form>
-          )}
-
-          {/* ── STEP 2: OTP ───────────────────────────────────────────── */}
-          {step === 2 && (
-            <motion.form
-              key="step2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              onSubmit={submitOtp(onOTPSubmit)}
-              className="space-y-5"
-            >
-              <p className={`text-sm text-center ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                Enter the 6-digit code sent to your {userPhoneData?.email ? 'email' : 'phone'}
-              </p>
-
-              {userPhoneData?.fallbackOtp && (
-                <div className={`p-3 rounded-xl text-center border ${isDark ? 'bg-[#00a884]/10 border-[#00a884]/20' : 'bg-[#00a884]/5 border-[#00a884]/15'}`}>
-                  <p className="text-xs text-[#00a884] font-semibold mb-1">Verification Code:</p>
-                  <span className="text-2xl font-extrabold tracking-widest text-[#00a884] font-mono">
-                    {userPhoneData.fallbackOtp}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex justify-between gap-2">
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    id={`otp-${idx}`}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOTPChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOTPKeyDown(idx, e)}
-                    className={`w-12 h-12 text-center rounded-xl border outline-none text-lg font-bold focus:ring-2 focus:ring-[#00a884]/40 focus:border-[#00a884] transition-all ${errOtp.otp ? 'border-red-500' : isDark ? 'bg-[#202c33] border-[#2a3942] text-[#e9edef]' : 'bg-[#f0f2f5] border-gray-200'}`}
-                  />
-                ))}
-              </div>
-              {errOtp.otp && <p className="text-red-400 text-xs text-center">{errOtp.otp.message}</p>}
-
-              <button
-                id="verify-otp-btn"
-                type="submit"
-                disabled={loading}
-                className="w-full p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#00a884]/15 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? <Spinner /> : 'Verify Code'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleBack}
-                className={`w-full p-2 flex items-center justify-center gap-2 text-sm transition-colors ${isDark ? 'text-[#8696a0] hover:text-[#e9edef]' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                <FaArrowLeft className="text-xs" /> Wrong contact? Go back
-              </button>
-            </motion.form>
-          )}
-
-          {/* ── STEP 3: Profile Setup ──────────────────────────────────── */}
-          {step === 3 && (
-            <motion.form
-              key="step3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              onSubmit={submitProfile(onProfileSubmit)}
-              className="space-y-4"
-            >
-              {/* Avatar preview */}
-              <div className="flex flex-col items-center mb-2">
-                <div className="relative w-24 h-24 rounded-full border-[3px] border-[#00a884] overflow-hidden shadow-lg shadow-[#00a884]/10 mb-2">
-                  <img
-                    src={profilePicturePreview || selectedAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <label htmlFor="file-upload" className="absolute bottom-0 right-0 bg-[#00a884] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#008f6f] transition-colors">
-                    <FaPlus className="w-3 h-3" />
-                  </label>
-                  <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                </div>
-                <span className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>Upload photo or pick an avatar</span>
-              </div>
-
-              {/* Avatar presets */}
-              <div className="flex justify-center gap-3 overflow-x-auto pb-1">
-                {avatarSeeds.map((seed, idx) => {
-                  const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-                  const isSelected = selectedAvatar === url && !profilePicturePreview;
-                  return (
-                    <motion.img
-                      key={idx}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      src={url}
-                      alt={`Avatar ${idx}`}
-                      onClick={() => { setSelectedAvatar(url); setProfilePictureFile(null); setProfilePicturePreview(null); }}
-                      className={`w-12 h-12 rounded-full cursor-pointer border-2 transition-all ${isSelected ? 'border-[#00a884] shadow-md shadow-[#00a884]/20' : isDark ? 'border-[#202c33]' : 'border-gray-200'}`}
+                <div className="flex justify-center gap-3">
+                  {otp.map((digit, idx) => (
+                    <input key={idx} id={`otp-${idx}`} type="text" maxLength={1} value={digit}
+                      onChange={(e) => handleOTPChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleOTPKeyDown(idx, e)}
+                      className={`w-12 h-14 text-center rounded-2xl border-2 outline-none text-lg font-bold transition-all duration-200 ${
+                        errOtp.otp ? 'border-red-500/60' :
+                        digit ? `border-[#F97316] ${isDark ? 'bg-[#F97316]/10 text-[#FAFAFA]' : 'bg-orange-50 text-[#0C0A09]'}` :
+                        isDark ? 'bg-[#18181B] border-[#27272A] text-[#FAFAFA] focus:border-[#F97316]' : 'bg-[#F5F5F4] border-[#E7E5E4] focus:border-[#F97316]'
+                      }`}
                     />
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+                {errOtp.otp && <p className="text-red-400 text-xs text-center">{errOtp.otp.message}</p>}
 
-              {/* Username */}
-              <div className="relative">
-                <FaUser className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#8696a0]' : 'text-gray-400'}`} />
-                <input
-                  id="username-input"
-                  type="text"
-                  placeholder="Choose a username"
-                  {...regProfile('username')}
-                  className={`${inputClass(errProfile.username)} pl-10`}
-                />
-              </div>
-              {errProfile.username && <p className="text-red-400 text-xs">{errProfile.username.message}</p>}
+                <button id="verify-otp-btn" type="submit" disabled={loading}
+                  className="w-full py-3.5 accent-gradient text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:brightness-110 transition-all disabled:opacity-50"
+                >
+                  {loading ? <Spinner /> : 'Verify →'}
+                </button>
 
-              {/* Terms checkbox */}
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  id="agreed-checkbox"
-                  type="checkbox"
-                  {...regProfile('agreed')}
-                  className="rounded text-[#00a884] focus:ring-[#00a884] w-4 h-4 accent-[#00a884]"
-                />
-                <span className={`text-xs ${isDark ? 'text-[#8696a0]' : 'text-gray-500'}`}>
-                  I agree to the{' '}
-                  <span className="text-[#00a884] cursor-pointer hover:underline">Terms & Conditions</span>
-                </span>
-              </label>
-              {errProfile.agreed && <p className="text-red-400 text-xs">{errProfile.agreed.message}</p>}
+                <button type="button" onClick={handleBack}
+                  className={`w-full py-2 flex items-center justify-center gap-2 text-xs font-medium transition-colors ${isDark ? 'text-[#71717A] hover:text-[#FAFAFA]' : 'text-[#A8A29E] hover:text-[#0C0A09]'}`}
+                >
+                  <FaArrowLeft className="text-[10px]" /> Go back
+                </button>
+              </motion.form>
+            )}
 
-              <button
-                id="create-account-btn"
-                type="submit"
-                disabled={loading || !agreedWatched}
-                className={`w-full p-3 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md ${loading || !agreedWatched ? 'bg-gray-500 opacity-50 cursor-not-allowed' : 'bg-[#00a884] hover:bg-[#008f6f] shadow-[#00a884]/15'}`}
-              >
-                {loading ? <Spinner /> : 'Create Account'}
-              </button>
-            </motion.form>
-          )}
-        </AnimatePresence>
+            {/* ══════ STEP 3 ══════ */}
+            {step === 3 && (
+              <motion.form key="s3" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.25 }} onSubmit={submitProfile(onProfileSubmit)} className="space-y-5">
+                {/* Avatar */}
+                <div className="flex flex-col items-center">
+                  <div className="relative w-24 h-24 mb-3">
+                    <div className="w-full h-full rounded-full accent-gradient p-[3px]">
+                      <div className={`w-full h-full rounded-full overflow-hidden ${isDark ? 'bg-[#18181B]' : 'bg-white'}`}>
+                        <img src={profilePicturePreview || selectedAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                    <label htmlFor="file-upload" className="absolute -bottom-1 -right-1 w-8 h-8 accent-gradient rounded-full flex items-center justify-center cursor-pointer shadow-lg shadow-orange-500/30 hover:scale-110 transition-transform">
+                      <FaPlus className="w-3 h-3 text-white" />
+                    </label>
+                    <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  </div>
+                  <span className={`text-[11px] ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>Upload or pick avatar</span>
+                </div>
+
+                {/* Avatar presets */}
+                <div className="flex justify-center gap-2.5">
+                  {avatarSeeds.map((seed, idx) => {
+                    const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+                    const isSelected = selectedAvatar === url && !profilePicturePreview;
+                    return (
+                      <motion.img key={idx} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} src={url} alt={`Avatar ${idx}`}
+                        onClick={() => { setSelectedAvatar(url); setProfilePictureFile(null); setProfilePicturePreview(null); }}
+                        className={`w-11 h-11 rounded-full cursor-pointer border-2 transition-all ${isSelected ? 'border-[#F97316] shadow-md shadow-orange-500/20 scale-110' : isDark ? 'border-[#27272A] hover:border-[#3F3F46]' : 'border-[#E7E5E4] hover:border-[#D6D3D1]'}`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Username */}
+                <div className="relative">
+                  <FaUser className={`absolute left-4 top-1/2 -translate-y-1/2 text-sm ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />
+                  <input id="username-input" type="text" placeholder="Your display name" {...regProfile('username')}
+                    className={`${inputCls(errProfile.username)} pl-11`}
+                  />
+                </div>
+                {errProfile.username && <p className="text-red-400 text-xs">{errProfile.username.message}</p>}
+
+                {/* Terms */}
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input id="agreed-checkbox" type="checkbox" {...regProfile('agreed')}
+                    className="w-4 h-4 rounded accent-[#F97316] cursor-pointer"
+                  />
+                  <span className={`text-xs ${isDark ? 'text-[#A1A1AA] group-hover:text-[#FAFAFA]' : 'text-[#78716C] group-hover:text-[#0C0A09]'} transition-colors`}>
+                    I agree to the <span className="text-[#F97316] hover:underline cursor-pointer font-medium">Terms & Conditions</span>
+                  </span>
+                </label>
+
+                <button id="create-account-btn" type="submit" disabled={loading || !agreedWatched}
+                  className={`w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${loading || !agreedWatched ? 'bg-[#27272A] text-[#71717A] cursor-not-allowed shadow-none' : 'accent-gradient text-white shadow-orange-500/20 hover:brightness-110'}`}
+                >
+                  {loading ? <Spinner /> : 'Create Account →'}
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
     </div>
   );

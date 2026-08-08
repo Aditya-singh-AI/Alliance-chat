@@ -23,111 +23,64 @@ export default function Setting() {
   const handleLogout = async () => {
     try {
       const res = await logoutUser();
-      if (res.status === 'success') {
-        clearUser();
-        toast.success('Logged out successfully');
-      }
-    } catch {
-      toast.error('Failed to log out');
-    }
+      if (res.status === 'success') { clearUser(); toast.success('Logged out successfully'); }
+    } catch { toast.error('Failed to log out'); }
   };
 
   const menuItems = [
-    {
-      icon: <FaUser className="text-[#00a884]" />,
-      label: 'Edit Profile Details',
-      desc: 'Name, photo, about',
-      onClick: () => setActiveTab('profile'),
-    },
-    {
-      icon: <FaPalette className="text-[#00a884]" />,
-      label: 'Toggle Theme',
-      desc: isDark ? 'Currently Dark mode' : 'Currently Light mode',
-      onClick: handleToggleTheme,
-      badge: isDark ? 'Dark' : 'Light',
-    },
+    { icon: <FaUser className="text-[#F97316]" />, label: 'Edit Profile', desc: 'Name, photo, about', onClick: () => setActiveTab('profile') },
+    { icon: <FaPalette className="text-[#F97316]" />, label: 'Toggle Theme', desc: isDark ? 'Currently Dark mode' : 'Currently Light mode', onClick: handleToggleTheme, badge: isDark ? 'Dark' : 'Light' },
   ];
 
   return (
-    <div className={`h-full flex flex-col ${isDark ? 'bg-[#111b21] text-white' : 'bg-gray-100 text-gray-800'}`}>
-
-      {/* Header */}
-      <div className={`p-4 flex items-center space-x-3 border-b ${isDark ? 'bg-[#202c33] border-gray-700' : 'bg-white border-gray-200'}`}>
-        <button
-          onClick={() => setActiveTab('chats')}
-          className={`p-1 rounded-full ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-        >
-          <FaChevronLeft size={18} />
+    <div className={`h-full flex flex-col ${isDark ? 'bg-[#18181B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'}`}>
+      <div className={`p-4 flex items-center space-x-3 border-b ${isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'}`}>
+        <button onClick={() => setActiveTab('chats')} className={`p-1.5 rounded-xl ${isDark ? 'hover:bg-[#27272A]' : 'hover:bg-[#F5F5F4]'}`}>
+          <FaChevronLeft size={16} />
         </button>
-        <h1 className="text-xl font-bold">Settings</h1>
+        <h1 className="text-xl font-extrabold">Settings</h1>
       </div>
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-
-        {/* Profile card */}
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          onClick={() => setActiveTab('profile')}
-          className={`p-4 rounded-2xl flex items-center space-x-4 cursor-pointer shadow-sm ${isDark ? 'bg-[#202c33] hover:bg-[#2a3942]' : 'bg-white hover:bg-gray-50'}`}
+        <motion.div whileHover={{ scale: 1.01 }} onClick={() => setActiveTab('profile')}
+          className={`p-4 rounded-2xl flex items-center space-x-4 cursor-pointer border ${isDark ? 'bg-[#27272A] border-[#3F3F46] hover:border-[#F97316]/30' : 'bg-white border-[#E7E5E4] hover:border-[#F97316]/30 shadow-sm'}`}
         >
-          <img
-            src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`}
-            alt={user?.username}
-            className="w-16 h-16 rounded-full object-cover border-2 border-[#00a884]"
-          />
+          <div className="w-14 h-14 rounded-xl accent-gradient p-[2px]">
+            <div className={`w-full h-full rounded-[10px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
+              <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id}`} alt={user?.username} className="w-full h-full object-cover" />
+            </div>
+          </div>
           <div>
-            <h2 className="font-bold text-lg">{user?.username}</h2>
-            <p className={`text-sm truncate max-w-[200px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              {user?.about || 'Hey there! I am using Talkative.'}
-            </p>
+            <h2 className="font-extrabold">{user?.username}</h2>
+            <p className={`text-sm truncate max-w-[200px] ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{user?.about || 'Hey there! I am using Talkative.'}</p>
           </div>
         </motion.div>
 
-        {/* Menu items */}
-        <div className={`rounded-2xl overflow-hidden shadow-sm ${isDark ? 'bg-[#202c33]' : 'bg-white'}`}>
+        <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-[#27272A] border-[#3F3F46]' : 'bg-white border-[#E7E5E4] shadow-sm'}`}>
           {menuItems.map((item, idx) => (
-            <motion.button
-              key={idx}
-              whileHover={{ x: 3 }}
-              onClick={item.onClick}
-              className={`w-full p-4 flex items-center justify-between transition
-                ${idx < menuItems.length - 1 ? `border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}` : ''}
-                ${isDark ? 'hover:bg-[#2a3942]' : 'hover:bg-gray-50'}`}
+            <motion.button key={idx} whileHover={{ x: 3 }} onClick={item.onClick}
+              className={`w-full p-4 flex items-center justify-between transition ${idx < menuItems.length - 1 ? `border-b ${isDark ? 'border-[#3F3F46]' : 'border-[#E7E5E4]'}` : ''} ${isDark ? 'hover:bg-[#323238]' : 'hover:bg-[#F5F5F4]'}`}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-[#00a884]/15 flex items-center justify-center">
-                  {item.icon}
-                </div>
+                <div className="w-9 h-9 rounded-xl bg-[#F97316]/10 flex items-center justify-center">{item.icon}</div>
                 <div className="text-left">
-                  <p className="font-medium text-sm">{item.label}</p>
-                  <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.desc}</p>
+                  <p className="font-bold text-sm">{item.label}</p>
+                  <p className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{item.desc}</p>
                 </div>
               </div>
-              {item.badge && (
-                <span className="text-xs bg-[#00a884] text-white px-2 py-0.5 rounded-full font-bold">
-                  {item.badge}
-                </span>
-              )}
+              {item.badge && <span className="text-xs accent-gradient text-white px-2.5 py-0.5 rounded-lg font-bold">{item.badge}</span>}
             </motion.button>
           ))}
         </div>
 
-        {/* Logout */}
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleLogout}
-          className="w-full p-4 flex items-center space-x-3 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10 transition"
+        <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} onClick={handleLogout}
+          className={`w-full p-4 flex items-center space-x-3 rounded-2xl border transition ${isDark ? 'border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10' : 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100'}`}
         >
-          <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center">
-            <FaSignOutAlt />
-          </div>
-          <span className="font-medium text-sm">Sign Out Session</span>
+          <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center"><FaSignOutAlt /></div>
+          <span className="font-bold text-sm">Sign Out</span>
         </motion.button>
 
-        <p className={`text-center text-xs pb-2 ${isDark ? 'text-gray-600' : 'text-gray-300'}`}>
-          Talkative v1.0.0
-        </p>
+        <p className={`text-center text-[10px] font-medium pb-2 ${isDark ? 'text-[#3F3F46]' : 'text-[#D6D3D1]'}`}>Talkative v1.0.0</p>
       </div>
     </div>
   );
