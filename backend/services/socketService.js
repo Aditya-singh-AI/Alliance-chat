@@ -1,6 +1,8 @@
 const { Server } = require("socket.io");
 const User = require("../models/User");
 const Message = require("../models/Message");
+const handleVideoCallEvents = require("./videoCallEvents");
+// const socketMiddleware = require("../middleware/socketMiddleware"); // Uncomment to enforce socket auth
 
 const onlineUsers = new Map(); // userId -> socketId
 const typingTimeouts = new Map(); // userId -> timeout ID
@@ -26,6 +28,7 @@ const initializeSocket = (server) => {
         const uid = (typeof userId === "object" ? userId?._id || userId?.id : userId)?.toString();
         if (uid) {
           onlineUsers.set(uid, socket.id);
+          socket.userId = uid; // Store userId on socket for video call signalling
           socket.join(uid);
 
           await User.findByIdAndUpdate(uid, {
@@ -233,6 +236,9 @@ const initializeSocket = (server) => {
         }
       }
     });
+
+    // Register WebRTC Video Call signalling events
+    handleVideoCallEvents(socket, io, onlineUsers);
   });
 
   return io;

@@ -7,6 +7,7 @@ import { useUserStore } from '../store/useUserStore';
 import { useSocketStore } from '../store/useSocketStore';
 import SideBar from './SideBar';
 import ChatWindow from '../pages/chat-section/ChatWindow';
+import VideoCallManager from '../pages/chat-section/VideoCallManager';
 
 const Layout = ({ children }) => {
   const { selectedContact, setSelectedContact, setActiveTab } = useLayoutStore();
@@ -191,6 +192,9 @@ const Layout = ({ children }) => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Video Call Manager — listens for incoming calls globally */}
+      <VideoCallManager />
 
       {/* Theme Selection Modal */}
       <AnimatePresence>

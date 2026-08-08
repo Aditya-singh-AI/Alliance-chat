@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { isToday, isYesterday, format } from "date-fns";
-import { IoSend, IoAttach, IoHappyOutline, IoArrowBack, IoLockClosed, IoClose, IoPerson } from "react-icons/io5";
+import { IoSend, IoAttach, IoHappyOutline, IoArrowBack, IoLockClosed, IoClose, IoPerson, IoCall, IoVideocam } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatStore } from "../../store/useChatStore";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useLayoutStore } from "../../store/useLayoutStore";
+import useVideoCallStore from "../../store/useVideoCallStore";
 import MessageBubble from "./MessageBubble";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
@@ -207,6 +208,30 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Video & Audio Call Buttons */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => {
+              const initCall = useVideoCallStore.getState().initiateCall;
+              if (initCall) initCall(contactId, selectedContact.username, selectedContact.profilePicture, "audio");
+            }}
+            className={`p-2 rounded-xl transition-colors ${isDark ? "text-[#71717A] hover:bg-[#27272A] hover:text-[#FAFAFA]" : "text-[#A8A29E] hover:bg-[#F5F5F4] hover:text-[#0C0A09]"}`}
+            title="Voice Call"
+          >
+            <IoCall className="w-[18px] h-[18px]" />
+          </button>
+          <button
+            onClick={() => {
+              const initCall = useVideoCallStore.getState().initiateCall;
+              if (initCall) initCall(contactId, selectedContact.username, selectedContact.profilePicture, "video");
+            }}
+            className={`p-2 rounded-xl transition-colors ${isDark ? "text-[#71717A] hover:bg-[#27272A] hover:text-[#FAFAFA]" : "text-[#A8A29E] hover:bg-[#F5F5F4] hover:text-[#0C0A09]"}`}
+            title="Video Call"
+          >
+            <IoVideocam className="w-[18px] h-[18px]" />
+          </button>
         </div>
       </div>
 
