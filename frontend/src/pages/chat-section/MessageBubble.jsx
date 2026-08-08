@@ -1,8 +1,9 @@
 import React, { useState, useRef } from "react";
 import { format } from "date-fns";
-import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash, IoClose, IoDownload } from "react-icons/io5";
+import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash, IoClose, IoDownload, IoCall, IoVideocam } from "react-icons/io5";
 import { useChatStore } from "../../store/useChatStore";
 import { useThemeStore } from "../../store/useThemeStore";
+import useVideoCallStore from "../../store/useVideoCallStore";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
 const MessageBubble = ({ message }) => {
@@ -66,9 +67,51 @@ const MessageBubble = ({ message }) => {
             <video src={message.mediaUrl || message.imageOrVideoUrl} controls className="rounded-xl max-h-72 w-full mb-2" />
           )}
 
-          {/* Text */}
+          {/* Text or Call Log */}
           {message.content && (
-            <p className="text-[13.5px] leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+            (() => {
+              const isCallLog = message.content.includes("call ended") ||
+                                message.content.includes("Missed") ||
+                                message.content.includes("call declined") ||
+                                message.content.startsWith("📹") ||
+                                message.content.startsWith("📞");
+
+              if (isCallLog) {
+                const isVideo = message.content.includes("Video") || message.content.includes("video") || message.content.startsWith("📹");
+                const isMissedOrDeclined = message.content.includes("Missed") || message.content.includes("declined");
+
+                return (
+                  <div className="flex items-center gap-3 py-1 min-w-[190px]">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isMissedOrDeclined ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"
+                    }`}>
+                      {isVideo ? <IoVideocam className="w-5 h-5" /> : <IoCall className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold leading-tight truncate">
+                        {message.content.replace(/^[📹📞]\s*/, "")}
+                      </p>
+                      <button
+                        onClick={() => {
+                          const contactId = isUserMessage ? (message.receiver?._id || message.receiver?.id || message.receiver) : senderId;
+                          const initCall = useVideoCallStore.getState().initiateCall;
+                          if (initCall && contactId) {
+                            initCall(contactId, "User", null, isVideo ? "video" : "audio");
+                          }
+                        }}
+                        className="text-[10px] font-extrabold text-[#F97316] hover:underline mt-0.5 inline-block"
+                      >
+                        Call Back
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <p className="text-[13.5px] leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+              );
+            })()
           )}
 
           {/* Time & Status */}

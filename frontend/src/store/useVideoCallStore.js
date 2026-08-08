@@ -1,5 +1,20 @@
 import { create } from "zustand";
 
+const getSavedCallHistory = () => {
+  try {
+    const saved = localStorage.getItem("talkative_call_history");
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const saveCallHistory = (history) => {
+  try {
+    localStorage.setItem("talkative_call_history", JSON.stringify(history));
+  } catch (e) {}
+};
+
 const useVideoCallStore = create((set, get) => ({
   // State variables
   currentCall: null,
@@ -17,7 +32,11 @@ const useVideoCallStore = create((set, get) => ({
   peerConnection: null,
   iceCandidatesQueue: [],
   isCallModelOpen: false,
-  callStatus: "idle", // "idle", "calling", "ringing", "connecting", "connected", "ended", "failed"
+  callStatus: "idle", // "idle", "calling", "ringing", "connecting", "connected", "ended", "failed", "rejected"
+  callStartTime: null,
+
+  // Call history
+  callHistory: getSavedCallHistory(),
 
   // Actions
   setCurrentCall: (call) => set({ currentCall: call }),
@@ -28,7 +47,25 @@ const useVideoCallStore = create((set, get) => ({
   setRemoteStream: (stream) => set({ remoteStream: stream }),
   setPeerConnection: (pc) => set({ peerConnection: pc }),
   setCallModelOpen: (open) => set({ isCallModelOpen: open }),
-  setCallStatus: (status) => set({ callStatus: status }),
+  setCallStatus: (status) => {
+    if (status === "connected" && !get().callStartTime) {
+      set({ callStatus: status, callStartTime: Date.now() });
+    } else {
+      set({ callStatus: status });
+    }
+  },
+
+  // History management
+  addCallHistoryRecord: (record) => {
+    const updated = [record, ...get().callHistory];
+    saveCallHistory(updated);
+    set({ callHistory: updated });
+  },
+
+  clearCallHistory: () => {
+    saveCallHistory([]);
+    set({ callHistory: [] });
+  },
 
   // Add ICE Candidate to Queue
   addIceCandidate: (candidate) => set((state) => ({
@@ -99,7 +136,8 @@ const useVideoCallStore = create((set, get) => ({
       peerConnection: null,
       iceCandidatesQueue: [],
       isCallModelOpen: false,
-      callStatus: "idle"
+      callStatus: "idle",
+      callStartTime: null
     });
   },
 

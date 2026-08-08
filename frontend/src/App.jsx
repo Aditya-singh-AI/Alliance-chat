@@ -11,6 +11,7 @@ import { ProtectedRoute, PublicRoute } from "./components/Protected";
 import Login from "./pages/user-login/Login";
 import Home from "./components/Home";
 import StatusPage from "./pages/status-section/StatusPage";
+import CallsPage from "./pages/calls-section/CallsPage";
 import SettingPage from "./pages/setting-section/SettingPage";
 
 const App = () => {
@@ -60,6 +61,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Home />} />
           <Route path="/status" element={<StatusPage />} />
+          <Route path="/calls" element={<CallsPage />} />
           <Route path="/settings" element={<SettingPage />} />
         </Route>
       </Routes>

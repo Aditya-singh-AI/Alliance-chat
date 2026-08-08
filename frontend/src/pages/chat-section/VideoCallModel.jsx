@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import useVideoCallStore from "../../store/useVideoCallStore";
 import { useUserStore } from "../../store/useUserStore";
+import { useChatStore } from "../../store/useChatStore";
 import { useSocketStore, getGlobalSocket } from "../../store/useSocketStore";
+import { soundEffects } from "../../utils/soundEffects";
 import {
   FaPhoneSlash,
   FaVideo,
@@ -19,11 +21,18 @@ const iceConfiguration = {
   ]
 };
 
+const formatDuration = (seconds) => {
+  if (!seconds || seconds <= 0) return "00:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
 const VideoCallModel = () => {
   const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
   const storeSocket = useSocketStore((state) => state.socket);
   const getSocket = () => getGlobalSocket() || storeSocket;
-  const remoteVideoRef = useRef(null);
 
   const {
     currentCall,
@@ -37,6 +46,7 @@ const VideoCallModel = () => {
     peerConnection,
     isCallModelOpen,
     callStatus,
+    callStartTime,
     setCurrentCall,
     setCallActive,
     setLocalStream,
@@ -49,10 +59,60 @@ const VideoCallModel = () => {
     toggleVideo,
     toggleAudio,
     endCall,
-    clearIncomingCall
+    clearIncomingCall,
+    addCallHistoryRecord
   } = useVideoCallStore();
 
   const { user } = useUserStore();
+
+  // Helper to record call log in history AND dispatch chat message thread entry
+  const recordAndLogCall = useCallback((type, status, participantId, participantName, participantAvatar, isOutgoing = true) => {
+    try {
+      const startTime = useVideoCallStore.getState().callStartTime;
+      const durationSecs = startTime ? Math.max(1, Math.floor((Date.now() - startTime) / 1000)) : 0;
+      const durationFormatted = formatDuration(durationSecs);
+
+      let logText = "";
+      const isVideo = type === "video";
+      const mediaIcon = isVideo ? "📹" : "📞";
+
+      if (status === "ended") {
+        logText = `${mediaIcon} ${isVideo ? "Video" : "Voice"} call ended • ${durationFormatted}`;
+      } else if (status === "rejected" || status === "declined") {
+        logText = `${mediaIcon} ${isVideo ? "Video" : "Voice"} call declined`;
+      } else {
+        logText = `${mediaIcon} Missed ${isVideo ? "video" : "voice"} call`;
+      }
+
+      // 1. Add record to Zustand call history store (and localStorage)
+      addCallHistoryRecord({
+        id: Date.now().toString(),
+        contactId: participantId,
+        name: participantName || "Unknown User",
+        avatar: participantAvatar || null,
+        callType: type || "video",
+        direction: isOutgoing ? "outgoing" : (status === "ended" ? "incoming" : "missed"),
+        status: status,
+        duration: durationFormatted,
+        durationSeconds: durationSecs,
+        timestamp: new Date().toISOString()
+      });
+
+      // 2. Dispatch call summary message into active chat thread if possible
+      const currentUserId = user?._id || user?.id;
+      if (currentUserId && participantId) {
+        const formData = new FormData();
+        formData.append("senderId", currentUserId);
+        formData.append("receiverId", participantId);
+        formData.append("content", logText);
+        formData.append("messageStatus", "sent");
+
+        useChatStore.getState().sendMessage(formData).catch(() => {});
+      }
+    } catch (err) {
+      console.error("[VideoCallModel] Failed to record call log:", err);
+    }
+  }, [user, addCallHistoryRecord]);
 
   // Memoize participant information to display on the screen
   const displayInfo = useMemo(() => {
@@ -70,6 +130,26 @@ const VideoCallModel = () => {
     return { name: "Unknown", avatar: null };
   }, [incomingCall, currentCall, isCallActive]);
 
+  // Sound Effects Controller: Ringtone, Connected Chime, and Call Ended Tones
+  useEffect(() => {
+    if (!isCallModelOpen) {
+      soundEffects.stopRingtone();
+      return;
+    }
+
+    if (callStatus === "calling" || callStatus === "ringing" || (incomingCall && !isCallActive)) {
+      soundEffects.startRingtone();
+    } else if (callStatus === "connected") {
+      soundEffects.playConnectedSound();
+    } else if (callStatus === "ended" || callStatus === "rejected" || callStatus === "failed") {
+      soundEffects.playEndedSound();
+    }
+
+    return () => {
+      soundEffects.stopRingtone();
+    };
+  }, [callStatus, isCallModelOpen, incomingCall, isCallActive]);
+
   // Monitor connection states
   useEffect(() => {
     if (peerConnection && remoteStream) {
@@ -86,10 +166,12 @@ const VideoCallModel = () => {
     }
   }, [localStream]);
 
-  // Bind remote media stream to remote video element
+  // Bind remote media stream to remote video/audio element
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
+      console.log("[WebRTC] Attaching remoteStream to media element. Tracks:", remoteStream.getTracks());
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch((err) => console.warn("Remote playback play() notice:", err));
     }
   }, [remoteStream]);
 
@@ -104,6 +186,20 @@ const VideoCallModel = () => {
       return stream;
     } catch (error) {
       console.error("Failed to access camera/mic media devices:", error);
+      // Smart Fallback: If webcam is in use by another tab/browser on 1 laptop, fall back to audio-only stream
+      if (callType === "video") {
+        try {
+          console.warn("[WebRTC] Webcam hardware in use. Falling back to audio-only stream...");
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: true
+          });
+          setLocalStream(audioStream);
+          return audioStream;
+        } catch (audioErr) {
+          console.error("Audio fallback also failed:", audioErr);
+        }
+      }
       setCallStatus("failed");
       throw error;
     }
@@ -112,6 +208,19 @@ const VideoCallModel = () => {
   // Handle ending the call and emitting the endCall socket event
   const handleEndCall = useCallback(() => {
     const recipientId = currentCall?.participantId || incomingCall?.callerId;
+    const recipientName = currentCall?.participantName || incomingCall?.callerName;
+    const recipientAvatar = currentCall?.participantAvatar || incomingCall?.callerAvatar;
+    const isOutgoing = !!currentCall;
+
+    recordAndLogCall(
+      callType || "video",
+      callStatus === "connected" ? "ended" : "missed",
+      recipientId,
+      recipientName,
+      recipientAvatar,
+      isOutgoing
+    );
+
     const sock = getSocket();
     if (recipientId && sock) {
       sock.emit("endCall", {
@@ -120,7 +229,7 @@ const VideoCallModel = () => {
       });
     }
     endCall();
-  }, [currentCall, incomingCall, storeSocket, endCall]);
+  }, [currentCall, incomingCall, callType, callStatus, storeSocket, endCall, recordAndLogCall]);
 
   // Create RTCPeerConnection and map track/candidate listeners
   const createPeerConnection = useCallback((stream) => {
@@ -242,6 +351,12 @@ const VideoCallModel = () => {
 
   // Handle reject call click
   const handleRejectCall = useCallback(() => {
+    const recipientId = incomingCall?.callerId;
+    const recipientName = incomingCall?.callerName;
+    const recipientAvatar = incomingCall?.callerAvatar;
+
+    recordAndLogCall(callType || "video", "rejected", recipientId, recipientName, recipientAvatar, false);
+
     const sock = getSocket();
     if (incomingCall && sock) {
       sock.emit("rejectCall", {
@@ -250,7 +365,7 @@ const VideoCallModel = () => {
       });
     }
     endCall();
-  }, [incomingCall, storeSocket, endCall]);
+  }, [incomingCall, callType, storeSocket, endCall, recordAndLogCall]);
 
   // ----------------------------------------------------
   // WEBRTC SIGNALING INBOUND EVENT HANDLERS
@@ -318,7 +433,6 @@ const VideoCallModel = () => {
     console.log("[VideoCallModel] Registering WebRTC signal listeners on socket:", socket.id);
 
     const handleCallAcceptedEvent = ({ receiverInfo }) => {
-      // Caller: update call properties with receiver details
       useVideoCallStore.setState((state) => ({
         currentCall: state.currentCall ? {
           ...state.currentCall,
@@ -371,7 +485,7 @@ const VideoCallModel = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 text-white backdrop-blur-md">
       <div className="relative w-full h-full max-w-4xl max-h-[85vh] bg-slate-900 md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
 
-        {/* Header containing Call Status / Close option if still connecting */}
+        {/* Header containing Call Status */}
         <div className="absolute top-4 left-4 z-20 bg-black/55 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${callStatus === "connected" ? "bg-green-500 animate-pulse" : "bg-yellow-500 animate-bounce"}`} />
           {callStatus.toUpperCase()}
@@ -417,15 +531,16 @@ const VideoCallModel = () => {
         {showActiveUi && (
           <div className="flex-1 relative bg-black flex items-center justify-center">
 
-            {/* Main view container: Holds remote stream if video, otherwise placeholders */}
-            {callType === "video" && remoteStream ? (
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
+            {/* Remote Media Element — ALWAYS mounted in DOM so audio plays for both voice & video calls */}
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className={callType === "video" && remoteStream ? "w-full h-full object-cover" : "hidden"}
+            />
+
+            {/* Audio Call View — Avatar and Status */}
+            {(callType !== "video" || !remoteStream) && (
               <div className="flex flex-col items-center justify-center text-center">
                 <img
                   src={displayInfo.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}

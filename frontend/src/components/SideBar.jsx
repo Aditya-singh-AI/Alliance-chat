@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { IoChatbubblesSharp, IoTimeSharp, IoSettingsSharp, IoLogOutSharp } from 'react-icons/io5';
+import { IoChatbubblesSharp, IoTimeSharp, IoSettingsSharp, IoLogOutSharp, IoCallSharp } from 'react-icons/io5';
 import { motion } from 'framer-motion';
 import { useUserStore } from '../store/useUserStore';
 import { useLayoutStore } from '../store/useLayoutStore';
@@ -28,6 +28,7 @@ const SideBar = ({ isMobile, onThemeClick }) => {
   const navItems = [
     { id: 'chats', path: '/', label: 'Chats', icon: IoChatbubblesSharp },
     { id: 'status', path: '/status', label: 'Status', icon: IoTimeSharp },
+    { id: 'calls', path: '/calls', label: 'Calls', icon: IoCallSharp },
     { id: 'settings', path: '/settings', label: 'Settings', icon: IoSettingsSharp },
   ];
 
