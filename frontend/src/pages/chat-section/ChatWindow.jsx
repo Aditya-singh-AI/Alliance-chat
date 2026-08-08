@@ -36,14 +36,13 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const theme = useThemeStore((state) => state.theme);
   const currentUser = useChatStore((state) => state.currentUser);
 
-  const { messages, loading, sendMessage, fetchMessages, conversations, startTyping, stopTyping, isUserTyping, isUserOnline, getUserLastSeen } = useChatStore();
+  const { messages, loading, sendMessage, fetchMessages, conversations, startTyping, stopTyping, isUserTyping, isUserOnline, getUserLastSeen, currentConversation, onlineUsers, typingUsers } = useChatStore();
 
   useOutsideClick(emojiPickerRef, () => setShowEmojiPicker(false));
 
   const contactId = (selectedContact?._id || selectedContact?.id)?.toString();
   const isOnline = isUserOnline(contactId) || Boolean(selectedContact?.isOnline);
   const lastSeen = getUserLastSeen(contactId) || selectedContact?.lastSeen;
-  const currentConversation = useChatStore.getState().currentConversation;
   const isTyping = isUserTyping(contactId, currentConversation);
 
   const scrollToBottom = () => { messageEndRef.current?.scrollIntoView({ behavior: "smooth" }); };

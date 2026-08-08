@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useThemeStore } from '../store/useThemeStore';
@@ -8,12 +9,23 @@ import SideBar from './SideBar';
 import ChatWindow from '../pages/chat-section/ChatWindow';
 
 const Layout = ({ children }) => {
-  const { selectedContact, setSelectedContact } = useLayoutStore();
+  const { selectedContact, setSelectedContact, setActiveTab } = useLayoutStore();
   const { theme, setTheme } = useThemeStore();
   const { user } = useUserStore();
   const { connect: connectSocket } = useSocketStore();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showThemeModal, setShowThemeModal] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
+
+  // Sync store activeTab with current route
+  useEffect(() => {
+    if (location.pathname === '/') setActiveTab('chats');
+    else if (location.pathname === '/status') setActiveTab('status');
+    else if (location.pathname === '/settings') setActiveTab('settings');
+  }, [location.pathname, setActiveTab]);
 
   // Connect socket globally once user is authenticated
   useEffect(() => {
@@ -26,7 +38,6 @@ const Layout = ({ children }) => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
 
-    // Keep layout scrolled to top on orientation/viewport change to prevent header being pushed off
     const handleVisualViewportResize = () => {
       if (window.visualViewport) {
         window.scrollTo(0, 0);
@@ -46,12 +57,84 @@ const Layout = ({ children }) => {
     };
   }, []);
 
+  // WhatsApp-style mobile hardware/browser back button handling
+  useEffect(() => {
+    if (!isMobile) return;
+
+    if (selectedContact) {
+      window.history.pushState({ chatOpen: true }, '');
+
+      const handlePopState = () => {
+        setSelectedContact(null);
+      };
+
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isMobile, selectedContact, setSelectedContact]);
+
+  // Touch swipe gestures for mobile tab switching & swipe to close chat
+  const handleTouchStart = (e) => {
+    if (!isMobile) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now(),
+    };
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!isMobile) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchStartRef.current.x - touchEndX;
+    const deltaY = touchStartRef.current.y - touchEndY;
+    const duration = Date.now() - touchStartRef.current.time;
+
+    // Ignore slow swipes or vertical scrolls
+    if (duration > 500 || Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaX) < 50) return;
+
+    // If chat window is open on mobile
+    if (selectedContact) {
+      // Swipe right from left edge closes active chat
+      if (touchStartRef.current.x < 80 && deltaX < -50) {
+        setSelectedContact(null);
+      }
+      return;
+    }
+
+    // Swipe between tabs: Chats (/) <-> Status (/status) <-> Settings (/settings)
+    const routes = ['/', '/status', '/settings'];
+    const tabMap = { '/': 'chats', '/status': 'status', '/settings': 'settings' };
+    const currentIndex = routes.indexOf(location.pathname);
+
+    if (currentIndex === -1) return;
+
+    if (deltaX > 50 && currentIndex < routes.length - 1) {
+      // Swipe Left -> Next Tab
+      const nextRoute = routes[currentIndex + 1];
+      setActiveTab(tabMap[nextRoute]);
+      navigate(nextRoute);
+    } else if (deltaX < -50 && currentIndex > 0) {
+      // Swipe Right -> Previous Tab
+      const prevRoute = routes[currentIndex - 1];
+      setActiveTab(tabMap[prevRoute]);
+      navigate(prevRoute);
+    }
+  };
+
   const isDark = theme === 'dark';
 
   return (
-    <div className={`h-[100dvh] w-full flex relative overflow-hidden font-sans select-none ${
-      isDark ? 'bg-[#09090B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
-    }`}>
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className={`h-[100dvh] w-full flex relative overflow-hidden font-sans select-none ${
+        isDark ? 'bg-[#09090B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
+      }`}
+    >
       {/* Sidebar: hidden on mobile when a chat is open */}
       {(!isMobile || !selectedContact) && (
         <SideBar isMobile={isMobile} onThemeClick={() => setShowThemeModal(true)} />
