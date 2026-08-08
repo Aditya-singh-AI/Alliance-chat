@@ -21,6 +21,13 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const [selectedFile, setSelectedFile] = useState(null);
   const [showUserProfileModal, setShowUserProfileModal] = useState(false);
 
+  // Dynamic visual viewport height for mobile keyboards
+  const [viewportHeight, setViewportHeight] = useState(
+    typeof window !== "undefined" && window.visualViewport
+      ? window.visualViewport.height
+      : null
+  );
+
   const typingTimeoutRef = useRef(null);
   const messageEndRef = useRef(null);
   const emojiPickerRef = useRef(null);
@@ -41,6 +48,27 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   const scrollToBottom = () => { messageEndRef.current?.scrollIntoView({ behavior: "smooth" }); };
   useEffect(() => { scrollToBottom(); }, [messages]);
+
+  // Handle dynamic visual viewport resize when mobile keyboard pops up
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+
+    const handleResize = () => {
+      setViewportHeight(window.visualViewport.height);
+      window.scrollTo(0, 0);
+      setTimeout(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    };
+
+    window.visualViewport.addEventListener("resize", handleResize);
+    window.visualViewport.addEventListener("scroll", handleResize);
+
+    return () => {
+      window.visualViewport.removeEventListener("resize", handleResize);
+      window.visualViewport.removeEventListener("scroll", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedContact) {
@@ -131,16 +159,19 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   }
 
   return (
-    <div className={`flex-1 flex flex-col h-full h-[100dvh] overflow-hidden ${isDark ? "bg-[#09090B]" : "bg-[#FAFAF9]"}`}>
-      {/* Header */}
-      <div className={`sticky top-0 z-30 flex-shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between border-b backdrop-blur-xl ${
+    <div
+      style={{ height: viewportHeight ? `${viewportHeight}px` : "100dvh" }}
+      className={`flex-1 flex flex-col w-full overflow-hidden ${isDark ? "bg-[#09090B]" : "bg-[#FAFAF9]"}`}
+    >
+      {/* Sticky Locked Header: Profile Photo, Name, and Live Status */}
+      <div className={`sticky top-0 z-30 flex-shrink-0 px-4 py-2.5 flex items-center justify-between border-b backdrop-blur-xl ${
         isDark ? "bg-[#18181B]/95 border-[#27272A]" : "bg-white/95 border-[#E7E5E4]"
       }`}>
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <button onClick={() => setSelectedContact(null)} className="md:hidden text-lg p-1.5 rounded-xl hover:bg-[#27272A] flex-shrink-0 text-current" aria-label="Back">
             <IoArrowBack />
           </button>
-          <div onClick={() => setShowUserProfileModal(true)} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0 flex-1" title="View Profile">
+          <div onClick={() => setShowUserProfileModal(true)} className="flex items-center gap-3 cursor-pointer group min-w-0 flex-1" title="View Profile">
             <div className="relative flex-shrink-0">
               <img src={selectedContact.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contactId}`}
                 alt="Profile" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover group-hover:opacity-90 transition-opacity"
@@ -151,9 +182,12 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
               <h4 className={`font-extrabold text-xs sm:text-sm leading-tight truncate transition-colors ${isDark ? 'group-hover:text-[#F97316]' : 'group-hover:text-[#F97316]'}`}>
                 {selectedContact.username}
               </h4>
-              <p className="text-[10px] sm:text-[11px] font-medium truncate mt-0.5">
+              <p className="text-[10px] sm:text-[11px] font-bold truncate mt-0.5">
                 {isTyping ? (
-                  <span className="text-[#F97316] font-bold animate-pulse">typing...</span>
+                  <span className="text-[#F97316] font-extrabold flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-[#F97316] inline-block animate-ping" />
+                    typing...
+                  </span>
                 ) : isOnline ? (
                   <span className="text-green-500 font-bold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-ping" />
@@ -203,8 +237,8 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
         </div>
       )}
 
-      {/* Input Field */}
-      <div className={`px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-t flex-shrink-0 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
+      {/* Input Field - Fixed at bottom of active visual viewport */}
+      <div className={`px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-t flex-shrink-0 z-30 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
         <div className="relative" ref={emojiPickerRef}>
           <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className={`p-2.5 rounded-xl transition-colors ${isDark ? "text-[#71717A] hover:bg-[#27272A] hover:text-[#FAFAFA]" : "text-[#A8A29E] hover:bg-[#F5F5F4] hover:text-[#0C0A09]"}`}
