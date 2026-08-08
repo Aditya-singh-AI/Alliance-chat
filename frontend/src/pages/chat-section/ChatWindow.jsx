@@ -33,7 +33,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   useOutsideClick(emojiPickerRef, () => setShowEmojiPicker(false));
 
-  const contactId = selectedContact?._id || selectedContact?.id;
+  const contactId = (selectedContact?._id || selectedContact?.id)?.toString();
   const isOnline = isUserOnline(contactId) || Boolean(selectedContact?.isOnline);
   const lastSeen = getUserLastSeen(contactId) || selectedContact?.lastSeen;
   const currentConversation = useChatStore.getState().currentConversation;
@@ -47,23 +47,29 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
       const convId = selectedContact.conversation?._id || selectedContact.conversation?.id;
       if (convId) { fetchMessages(convId); }
       else if (conversations?.data?.length > 0) {
-        const conversation = conversations.data.find((conv) => conv.participants && conv.participants.some((p) => (p._id || p.id) === contactId));
+        const conversation = conversations.data.find((conv) => conv.participants && conv.participants.some((p) => (p._id || p.id)?.toString() === contactId));
         if (conversation) fetchMessages(conversation._id || conversation.id);
       }
     }
   }, [selectedContact, conversations, fetchMessages, contactId]);
 
   useEffect(() => {
-    if (message.trim() && selectedContact) {
+    if (!contactId) return;
+    if (message.trim()) {
       startTyping(contactId);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => { stopTyping(contactId); }, 2000);
+      typingTimeoutRef.current = setTimeout(() => {
+        stopTyping(contactId);
+      }, 2500);
+    } else {
+      stopTyping(contactId);
     }
-    return () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); };
-  }, [message, selectedContact, startTyping, stopTyping, contactId]);
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [message, contactId, startTyping, stopTyping]);
 
   const handleInputFocus = () => {
-    // On mobile, ensure window scroll resets so fixed top header is never pushed off screen
     window.scrollTo(0, 0);
     setTimeout(scrollToBottom, 150);
   };
@@ -75,6 +81,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   const handleSendMessage = async () => {
     if (!message.trim() && !selectedFile) return;
+    stopTyping(contactId);
     const formData = new FormData();
     formData.append("senderId", currentUser?._id || currentUser?.id);
     formData.append("receiverId", contactId);
@@ -125,7 +132,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   return (
     <div className={`flex-1 flex flex-col h-full h-[100dvh] overflow-hidden ${isDark ? "bg-[#09090B]" : "bg-[#FAFAF9]"}`}>
-      {/* Locked Sticky Header for Mobile & Desktop — Always visible when typing */}
+      {/* Header */}
       <div className={`sticky top-0 z-30 flex-shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between border-b backdrop-blur-xl ${
         isDark ? "bg-[#18181B]/95 border-[#27272A]" : "bg-white/95 border-[#E7E5E4]"
       }`}>
@@ -196,7 +203,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
         </div>
       )}
 
-      {/* Input Field - Fixed at bottom of chat viewport */}
+      {/* Input Field */}
       <div className={`px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-t flex-shrink-0 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
         <div className="relative" ref={emojiPickerRef}>
           <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -253,10 +260,9 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
                 isDark ? "bg-[#18181B] text-[#FAFAFA] border-[#27272A]" : "bg-white text-[#0C0A09] border-[#E7E5E4]"
               }`}
             >
-              {/* Accent bar */}
               <div className="h-1.5 w-full accent-gradient" />
 
-              <div className={`p-4 flex items-center justify-between ${isDark ? "" : ""}`}>
+              <div className={`p-4 flex items-center justify-between`}>
                 <div className="flex items-center gap-2">
                   <IoPerson className="text-[#F97316]" />
                   <h3 className="font-extrabold text-sm">Contact Info</h3>

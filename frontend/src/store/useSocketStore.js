@@ -15,8 +15,10 @@ export const useSocketStore = create((set, get) => ({
   connect: (userId) => {
     if (!userId) return;
 
+    const uid = (typeof userId === 'object' ? userId?._id || userId?.id : userId)?.toString();
+
     if (globalSocket?.connected) {
-      globalSocket.emit('user_connected', userId);
+      globalSocket.emit('user_connected', uid);
       useChatStore.getState().initializeSocketListeners(globalSocket);
       return;
     }
@@ -32,19 +34,40 @@ export const useSocketStore = create((set, get) => ({
 
     socket.on('connect', () => {
       console.log('Socket connected successfully:', socket.id);
-      socket.emit('user_connected', userId);
+      socket.emit('user_connected', uid);
       useChatStore.getState().initializeSocketListeners(socket);
     });
 
-    socket.on('user_status', ({ userId: uid, isOnline }) => {
+    // Received initial full list of online users from server
+    socket.on('user_status_list', (userArray) => {
+      if (Array.isArray(userArray)) {
+        const next = new Set(userArray.map((id) => id.toString()));
+        set({ onlineUsers: next });
+        // Synchronize with chat store
+        const onlineMap = new Map();
+        userArray.forEach((id) => onlineMap.set(id.toString(), { isOnline: true }));
+        useChatStore.setState({ onlineUsers: onlineMap });
+      }
+    });
+
+    // Received individual online status change
+    socket.on('user_status', ({ userId: id, isOnline, lastSeen }) => {
+      if (!id) return;
+      const strId = id.toString();
       set((state) => {
         const next = new Set(state.onlineUsers);
         if (isOnline) {
-          next.add(uid);
+          next.add(strId);
         } else {
-          next.delete(uid);
+          next.delete(strId);
         }
         return { onlineUsers: next };
+      });
+      // Synchronize with chat store
+      useChatStore.setState((state) => {
+        const nextMap = new Map(state.onlineUsers);
+        nextMap.set(strId, { isOnline, lastSeen });
+        return { onlineUsers: nextMap };
       });
     });
 
@@ -60,6 +83,8 @@ export const useSocketStore = create((set, get) => ({
   },
 
   isUserOnline: (userId) => {
-    return get().onlineUsers.has(userId);
+    if (!userId) return false;
+    const strId = (typeof userId === 'object' ? userId?._id || userId?.id : userId)?.toString();
+    return get().onlineUsers.has(strId);
   },
 }));

@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { useUserStore } from "./store/useUserStore";
 import { useChatStore } from "./store/useChatStore";
-import { initializeSocket, disconnectSocket } from "./services/chatService";
+import { useSocketStore } from "./store/useSocketStore";
 
 import { ProtectedRoute, PublicRoute } from "./components/Protected";
 import Login from "./pages/user-login/Login";
@@ -16,27 +16,25 @@ import SettingPage from "./pages/setting-section/SettingPage";
 const App = () => {
   const user = useUserStore((state) => state.user);
   const { setCurrentUser, initializeSocketListeners, cleanUp } = useChatStore();
+  const connectSocket = useSocketStore((state) => state.connect);
+  const disconnectSocket = useSocketStore((state) => state.disconnect);
+
+  const userId = user?._id || user?.id;
 
   useEffect(() => {
-    if (user && (user._id || user.id)) {
-      // 1. Initialise store references
+    if (userId) {
       setCurrentUser(user);
-
-      // 2. Open client socket connection
-      const socket = initializeSocket();
-
-      if (socket) {
-        // 3. Bind events to state managers
-        initializeSocketListeners();
-      }
+      connectSocket(userId);
+      initializeSocketListeners();
     }
 
-    // Cleanup: disconnect and wipe states on user logout / session ending
     return () => {
-      disconnectSocket();
-      cleanUp();
+      if (!userId) {
+        disconnectSocket();
+        cleanUp();
+      }
     };
-  }, [user, setCurrentUser, initializeSocketListeners, cleanUp]);
+  }, [userId, user, setCurrentUser, connectSocket, initializeSocketListeners, disconnectSocket, cleanUp]);
 
   return (
     <Router>
