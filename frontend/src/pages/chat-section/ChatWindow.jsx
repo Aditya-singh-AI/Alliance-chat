@@ -98,7 +98,12 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   const handleInputFocus = () => {
     window.scrollTo(0, 0);
-    setTimeout(scrollToBottom, 150);
+    if (typeof window !== "undefined" && window.visualViewport) {
+      setViewportHeight(window.visualViewport.height);
+    }
+    setTimeout(() => {
+      scrollToBottom();
+    }, 120);
   };
 
   const handleFileChange = (e) => {
@@ -265,7 +270,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" className="hidden" />
         </div>
 
-        <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyPress} onFocus={handleInputFocus}
+        <input type="text" name="chat-message-input" id="chat-message-input" autoComplete="off" autoCorrect="off" autoCapitalize="sentences" spellCheck="true" data-lpignore="true" data-form-type="other" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyPress} onFocus={handleInputFocus}
           placeholder="Type a message..."
           className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all border ${
             isDark ? "bg-[#27272A] text-[#FAFAFA] placeholder-[#71717A] border-[#27272A] focus:border-[#F97316]/50" : "bg-[#F5F5F4] text-[#0C0A09] placeholder-[#A8A29E] border-[#F5F5F4] focus:border-[#F97316]/50"
@@ -274,10 +279,10 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }}
           onClick={handleSendMessage} disabled={!message.trim() && !selectedFile}
-          className={`p-2.5 rounded-xl text-white transition-all flex items-center justify-center ${
+          className={`p-2.5 rounded-xl text-white transition-all flex items-center justify-center flex-shrink-0 ${
             message.trim() || selectedFile ? "accent-gradient shadow-md shadow-orange-500/20" : isDark ? "bg-[#27272A] text-[#71717A] cursor-not-allowed" : "bg-[#E7E5E4] text-[#A8A29E] cursor-not-allowed"
           }`}
-        ><IoSend className="w-4 h-4" /></motion.button>
+        ><IoSend className="w-4 h-4 flex-shrink-0" /></motion.button>
       </div>
 
       {/* Profile Modal */}

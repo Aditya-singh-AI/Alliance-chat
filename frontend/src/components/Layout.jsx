@@ -167,7 +167,7 @@ const Layout = ({ children }) => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isMobile ? 60 : 0 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 h-full h-[100dvh] overflow-hidden flex flex-col"
+              className="flex-1 h-full overflow-hidden flex flex-col"
             >
               {selectedContact ? (
                 <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} />
