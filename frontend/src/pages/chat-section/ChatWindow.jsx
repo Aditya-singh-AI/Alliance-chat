@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import EmojiPicker from "emoji-picker-react";
 import { isToday, isYesterday, format } from "date-fns";
-import { IoSend, IoAttach, IoHappyOutline, IoArrowBack, IoLockClosed, IoClose, IoPerson, IoInformationCircleOutline } from "react-icons/io5";
+import { IoSend, IoAttach, IoHappyOutline, IoArrowBack, IoLockClosed, IoClose, IoPerson } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatStore } from "../../store/useChatStore";
 import { useThemeStore } from "../../store/useThemeStore";
@@ -62,6 +62,12 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
     return () => { if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); };
   }, [message, selectedContact, startTyping, stopTyping, contactId]);
 
+  const handleInputFocus = () => {
+    // On mobile, ensure window scroll resets so fixed top header is never pushed off screen
+    window.scrollTo(0, 0);
+    setTimeout(scrollToBottom, 150);
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) { setSelectedFile(file); setShowFileMenu(false); if (file.type.startsWith("image/")) setFilePreview(URL.createObjectURL(file)); }
@@ -118,43 +124,46 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   }
 
   return (
-    <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isDark ? "bg-[#09090B]" : "bg-[#FAFAF9]"}`}>
-      {/* Header */}
-      <div className={`px-5 py-3 flex items-center justify-between z-10 border-b ${
-        isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"
+    <div className={`flex-1 flex flex-col h-full h-[100dvh] overflow-hidden ${isDark ? "bg-[#09090B]" : "bg-[#FAFAF9]"}`}>
+      {/* Locked Sticky Header for Mobile & Desktop — Always visible when typing */}
+      <div className={`sticky top-0 z-30 flex-shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between border-b backdrop-blur-xl ${
+        isDark ? "bg-[#18181B]/95 border-[#27272A]" : "bg-white/95 border-[#E7E5E4]"
       }`}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setSelectedContact(null)} className="md:hidden text-lg p-1 rounded-lg hover:bg-[#27272A]">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+          <button onClick={() => setSelectedContact(null)} className="md:hidden text-lg p-1.5 rounded-xl hover:bg-[#27272A] flex-shrink-0 text-current" aria-label="Back">
             <IoArrowBack />
           </button>
-          <div onClick={() => setShowUserProfileModal(true)} className="flex items-center gap-3 cursor-pointer group" title="View Profile">
-            <div className="relative">
+          <div onClick={() => setShowUserProfileModal(true)} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0 flex-1" title="View Profile">
+            <div className="relative flex-shrink-0">
               <img src={selectedContact.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contactId}`}
-                alt="Profile" className="w-10 h-10 rounded-xl object-cover group-hover:opacity-90 transition-opacity"
+                alt="Profile" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover group-hover:opacity-90 transition-opacity"
               />
               {isOnline && <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#18181B] rounded-full online-badge" />}
             </div>
-            <div>
-              <h4 className={`font-bold text-sm leading-tight flex items-center gap-1.5 transition-colors ${isDark ? 'group-hover:text-[#F97316]' : 'group-hover:text-[#F97316]'}`}>
+            <div className="min-w-0 flex-1">
+              <h4 className={`font-extrabold text-xs sm:text-sm leading-tight truncate transition-colors ${isDark ? 'group-hover:text-[#F97316]' : 'group-hover:text-[#F97316]'}`}>
                 {selectedContact.username}
               </h4>
-              <span className="text-[11px] font-medium">
+              <p className="text-[10px] sm:text-[11px] font-medium truncate mt-0.5">
                 {isTyping ? (
-                  <span className="text-[#F97316]">typing...</span>
+                  <span className="text-[#F97316] font-bold animate-pulse">typing...</span>
                 ) : isOnline ? (
-                  <span className="text-green-500">online</span>
+                  <span className="text-green-500 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-ping" />
+                    online
+                  </span>
                 ) : lastSeen ? (
                   <span className={isDark ? "text-[#71717A]" : "text-[#A8A29E]"}>last seen {format(new Date(lastSeen), "HH:mm")}</span>
                 ) : (
                   <span className={isDark ? "text-[#71717A]" : "text-[#A8A29E]"}>offline</span>
                 )}
-              </span>
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages Scroll Area */}
       <div className={`flex-1 px-4 py-3 overflow-y-auto space-y-1 ${isDark ? "chat-pattern-dark" : "chat-pattern-light"}`}>
         {loading && (
           <div className="flex justify-center py-4">
@@ -179,7 +188,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
       {/* File Preview */}
       {filePreview && (
-        <div className={`relative p-3 flex justify-center border-t ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
+        <div className={`relative p-3 flex justify-center border-t flex-shrink-0 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
           <img src={filePreview} alt="Preview" className="max-h-36 rounded-xl shadow-md object-cover" />
           <button onClick={() => { setFilePreview(null); setSelectedFile(null); }}
             className="absolute top-2 right-4 bg-red-600 hover:bg-red-700 text-white rounded-xl w-7 h-7 flex items-center justify-center text-xs shadow-md"
@@ -187,8 +196,8 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
         </div>
       )}
 
-      {/* Input */}
-      <div className={`px-4 py-3 flex items-center gap-2 border-t ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
+      {/* Input Field - Fixed at bottom of chat viewport */}
+      <div className={`px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-t flex-shrink-0 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>
         <div className="relative" ref={emojiPickerRef}>
           <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className={`p-2.5 rounded-xl transition-colors ${isDark ? "text-[#71717A] hover:bg-[#27272A] hover:text-[#FAFAFA]" : "text-[#A8A29E] hover:bg-[#F5F5F4] hover:text-[#0C0A09]"}`}
@@ -216,7 +225,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" className="hidden" />
         </div>
 
-        <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyPress}
+        <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyPress} onFocus={handleInputFocus}
           placeholder="Type a message..."
           className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all border ${
             isDark ? "bg-[#27272A] text-[#FAFAFA] placeholder-[#71717A] border-[#27272A] focus:border-[#F97316]/50" : "bg-[#F5F5F4] text-[#0C0A09] placeholder-[#A8A29E] border-[#F5F5F4] focus:border-[#F97316]/50"
@@ -282,7 +291,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
                 </div>
 
                 {(selectedContact.email || selectedContact.phoneNumber) && (
-                  <div className={`w-full p-4 rounded-xl text-left border space-y-3 ${isDark ? "bg-[#27272A] border-[#3F3F46]" : "bg-[#F5F5F4] border-[#E7E5E4]"}`}>
+                  <div className={`w-full p-4 rounded-xl text-left border space-y-3 ${isDark ? "bg-[#27272A] border-[#3F3F46]" : "bg-white border-[#E7E5E4]"}`}>
                     {selectedContact.email && (
                       <div><span className="text-[10px] text-[#F97316] font-bold uppercase tracking-widest block">Email</span><p className="text-sm font-medium mt-0.5">{selectedContact.email}</p></div>
                     )}

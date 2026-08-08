@@ -21,17 +21,35 @@ const Layout = ({ children }) => {
     if (userId) { connectSocket(userId); }
   }, [user?._id, user?.id, connectSocket]);
 
-  // Real-time responsive detection
+  // Real-time responsive detection & visual viewport adjustment for mobile keyboards
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    // Keep layout scrolled to top on orientation/viewport change to prevent header being pushed off
+    const handleVisualViewportResize = () => {
+      if (window.visualViewport) {
+        window.scrollTo(0, 0);
+      }
+    };
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVisualViewportResize);
+      window.visualViewport.addEventListener('scroll', handleVisualViewportResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleVisualViewportResize);
+        window.visualViewport.removeEventListener('scroll', handleVisualViewportResize);
+      }
+    };
   }, []);
 
   const isDark = theme === 'dark';
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden font-sans select-none ${
+    <div className={`h-[100dvh] w-full flex relative overflow-hidden font-sans select-none ${
       isDark ? 'bg-[#09090B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
     }`}>
       {/* Sidebar: hidden on mobile when a chat is open */}
@@ -40,7 +58,7 @@ const Layout = ({ children }) => {
       )}
 
       {/* Main content panels */}
-      <div className={`flex flex-1 ${isMobile ? 'flex-col' : 'flex-row'} h-screen overflow-hidden`}>
+      <div className={`flex flex-1 ${isMobile ? 'flex-col' : 'flex-row'} h-[100dvh] overflow-hidden`}>
         <AnimatePresence mode="wait">
           {/* LEFT PANEL: Chat list / nav page */}
           {(!isMobile || !selectedContact) && (
@@ -50,7 +68,7 @@ const Layout = ({ children }) => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isMobile ? -60 : 0 }}
               transition={{ duration: 0.2 }}
-              className={`h-full overflow-hidden ${isMobile ? 'w-full' : 'w-[380px] lg:w-[400px] flex-shrink-0'} border-r ${
+              className={`h-full overflow-hidden ${isMobile ? 'w-full pb-16' : 'w-[380px] lg:w-[400px] flex-shrink-0'} border-r ${
                 isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'
               }`}
             >
@@ -66,7 +84,7 @@ const Layout = ({ children }) => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isMobile ? 60 : 0 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 h-full overflow-hidden"
+              className="flex-1 h-full h-[100dvh] overflow-hidden flex flex-col"
             >
               {selectedContact ? (
                 <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} />
