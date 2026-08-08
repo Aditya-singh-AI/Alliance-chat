@@ -11,11 +11,8 @@ import {
 } from "react-icons/io5";
 import useVideoCallStore from "../../store/useVideoCallStore";
 import { useThemeStore } from "../../store/useThemeStore";
-import { useLayoutStore } from "../../store/useLayoutStore";
-
 const Calls = () => {
   const { theme } = useThemeStore();
-  const { setSelectedContact, setActiveTab } = useLayoutStore();
   const { callHistory, clearCallHistory } = useVideoCallStore();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -87,7 +84,6 @@ const Calls = () => {
             {filteredHistory.map((call) => {
               const isMissed = call.direction === "missed" || call.status === "rejected" || call.status === "missed";
               const isIncoming = call.direction === "incoming";
-              const isVideo = call.callType === "video";
               const callDate = call.timestamp ? format(new Date(call.timestamp), "MMM dd, HH:mm") : "Recently";
 
               return (
