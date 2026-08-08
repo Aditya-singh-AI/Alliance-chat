@@ -28,6 +28,12 @@ const userSchema = new mongoose.Schema(
     emailOtpExpiry: {
       type: String,
     },
+    phoneOtp: {
+      type: String,
+    },
+    phoneOtpExpiry: {
+      type: Date,
+    },
 
     profilePicture: {
       type: String,
