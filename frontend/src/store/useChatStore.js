@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { toast } from "react-toastify";
 import axiosInstance from "../services/url.service";
 import { getGlobalSocket, useSocketStore } from "./useSocketStore";
 import { useLayoutStore } from "./useLayoutStore";

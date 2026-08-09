@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { IoChatbubblesSharp } from 'react-icons/io5';
 
 // Full-screen page loader displayed during auth verification
 const Loader = () => {

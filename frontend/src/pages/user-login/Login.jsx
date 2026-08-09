@@ -4,7 +4,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaUser, FaPlus, FaAngleDown, FaEnvelope, FaPhone } from 'react-icons/fa';
-import { IoChatbubblesSharp } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
