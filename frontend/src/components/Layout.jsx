@@ -8,6 +8,7 @@ import { useSocketStore } from '../store/useSocketStore';
 import SideBar from './SideBar';
 import ChatWindow from '../pages/chat-section/ChatWindow';
 import VideoCallManager from '../pages/chat-section/VideoCallManager';
+import NotificationPopup from './NotificationPopup';
 
 const Layout = ({ children }) => {
   const { selectedContact, setSelectedContact, setActiveTab } = useLayoutStore();
@@ -177,12 +178,12 @@ const Layout = ({ children }) => {
                 <div className={`h-full flex flex-col items-center justify-center text-center p-8 ${
                   isDark ? 'bg-[#09090B]' : 'bg-[#FAFAF9]'
                 }`}>
-                  <div className="w-20 h-20 accent-gradient rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-orange-500/15">
-                    <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-extrabold mb-2 accent-gradient-text">Talkative</h3>
+                  <img
+                    src="/logo-orange.jpg"
+                    alt="Alliance Logo"
+                    className="w-24 h-24 rounded-3xl object-cover mb-5 shadow-2xl shadow-orange-500/25 border border-orange-500/20"
+                  />
+                  <h3 className="text-2xl font-extrabold mb-2 accent-gradient-text">Alliance</h3>
                   <p className={`text-sm max-w-xs leading-relaxed ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
                     Fast, secure messaging at your fingertips. Pick a conversation from the sidebar to begin.
                   </p>
@@ -195,6 +196,9 @@ const Layout = ({ children }) => {
 
       {/* Video Call Manager — listens for incoming calls globally */}
       <VideoCallManager />
+
+      {/* Instagram-style floating notification popup banner */}
+      <NotificationPopup />
 
       {/* Theme Selection Modal */}
       <AnimatePresence>

@@ -186,7 +186,7 @@ const Setting = () => {
               ) : (
                 <>
                   <span className={`font-medium text-sm ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
-                    {user?.about || 'Hey there! I am using Talkative.'}
+                    {user?.about || 'Hey there! I am using Alliance.'}
                   </span>
                   <button onClick={() => { setAbout(user?.about || ''); setIsEditingAbout(true); }} className={`flex-shrink-0 ${isDark ? 'text-[#71717A] hover:text-[#F97316]' : 'text-[#A8A29E] hover:text-[#F97316]'}`}>
                     <FaPen size={12} />
@@ -334,7 +334,7 @@ const Setting = () => {
             {user?.phoneNumber ? `${user.phoneSuffix || ''} ${user.phoneNumber}` : user?.email || ''}
           </p>
           <p className={`text-xs mt-0.5 ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
-            {user?.about || 'Hey! I am using Talkative.'}
+            {user?.about || 'Hey! I am using Alliance.'}
           </p>
         </div>
         <FaChevronRight className={`text-xs ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`} />

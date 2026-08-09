@@ -192,13 +192,17 @@ const Login = () => {
           {/* Brand */}
           <div className="flex flex-col items-center mb-2">
             <motion.div
-              animate={{ rotate: [0, 2, -2, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-12 h-12 accent-gradient rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 mb-4"
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              className="mb-3"
             >
-              <IoChatbubblesSharp className="w-6 h-6 text-white" />
+              <img
+                src="/logo-orange.jpg"
+                alt="Alliance Logo"
+                className="w-16 h-16 rounded-2xl object-cover shadow-xl shadow-orange-500/25 border border-orange-500/20"
+              />
             </motion.div>
-            <h1 className="text-xl font-extrabold tracking-tight accent-gradient-text mb-1">Talkative</h1>
+            <h1 className="text-xl font-extrabold tracking-tight accent-gradient-text mb-1">Alliance</h1>
             <p className={`text-xs font-medium ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
               {step === 1 ? 'Sign in to your account' : step === 2 ? 'Enter verification code' : 'Set up your profile'}
             </p>

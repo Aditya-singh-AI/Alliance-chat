@@ -119,7 +119,7 @@ export default function UserDetails() {
             ) : (
               <>
                 <span className={`font-medium text-sm ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
-                  {user?.about || 'Hey there! I am using Talkative.'}
+                  {user?.about || 'Hey there! I am using Alliance.'}
                 </span>
                 <button onClick={() => setIsEditingAbout(true)} className={`flex-shrink-0 ${isDark ? 'text-[#71717A] hover:text-[#F97316]' : 'text-[#A8A29E] hover:text-[#F97316]'}`}>
                   <FaPen size={12} />

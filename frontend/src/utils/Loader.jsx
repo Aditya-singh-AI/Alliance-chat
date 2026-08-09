@@ -11,8 +11,12 @@ const Loader = () => {
         transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         className="mb-8"
       >
-        <div className="w-20 h-20 accent-gradient rounded-2xl flex items-center justify-center shadow-2xl shadow-orange-500/20">
-          <IoChatbubblesSharp className="w-12 h-12 text-white" />
+        <div className="relative">
+          <img
+            src="/logo-orange.jpg"
+            alt="Alliance Logo"
+            className="w-24 h-24 rounded-3xl object-cover shadow-2xl shadow-orange-500/30 border border-orange-500/20"
+          />
         </div>
       </motion.div>
 
@@ -20,7 +24,7 @@ const Loader = () => {
         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
         className="text-2xl font-extrabold text-[#FAFAFA] mb-2 tracking-tight"
       >
-        Talkative
+        Alliance
       </motion.h1>
       <motion.p
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}

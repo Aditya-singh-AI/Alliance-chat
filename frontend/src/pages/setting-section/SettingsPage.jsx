@@ -76,7 +76,7 @@ const SettingsPage = () => {
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-base truncate">{user?.username}</h3>
           <p className={`text-xs truncate ${isDark ? "text-[#8696a0]" : "text-gray-500"}`}>
-            {user?.about || "Hey there! I am using Talkative."}
+            {user?.about || "Hey there! I am using Alliance."}
           </p>
         </div>
       </div>

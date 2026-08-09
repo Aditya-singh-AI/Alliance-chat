@@ -29,13 +29,13 @@ const sendOtpToEmail = async (email, otp) => {
 
   const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-      <h2 style="color: #075e54;">🔐 Talkative Chat Verification</h2>
+      <h2 style="color: #F97316;">🔐 Alliance Verification</h2>
       
       <p>Hi there,</p>
       
-      <p>Your one-time password (OTP) to verify your Talkative Chat account is:</p>
+      <p>Your one-time password (OTP) to verify your Alliance account is:</p>
       
-      <h1 style="background: #e0f7fa; color: #000; padding: 10px 20px; display: inline-block; border-radius: 5px; letter-spacing: 2px;">
+      <h1 style="background: #fff7ed; color: #ea580c; padding: 10px 20px; display: inline-block; border-radius: 5px; letter-spacing: 2px;">
         ${otp}
       </h1>
 
@@ -43,7 +43,7 @@ const sendOtpToEmail = async (email, otp) => {
 
       <p>If you didn’t request this OTP, please ignore this email.</p>
 
-      <p style="margin-top: 20px;">Thanks & Regards,<br/>Talkative Chat Security Team</p>
+      <p style="margin-top: 20px;">Thanks & Regards,<br/>Alliance Security Team</p>
 
       <hr style="margin: 30px 0;" />
 
@@ -53,9 +53,9 @@ const sendOtpToEmail = async (email, otp) => {
 
   try {
     const sendMailPromise = transporter.sendMail({
-      from: `"Talkative Chat" <${process.env.EMAIL_USER}>`,
+      from: `"Alliance" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Your Talkative Verification OTP",
+      subject: "Your Alliance Verification OTP",
       html: html,
     });
 

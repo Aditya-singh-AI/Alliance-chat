@@ -229,7 +229,7 @@ const checkAuthenticated = async (req, res) => {
     return response(
       res,
       200,
-      "User retrived and allow to use Talkative app",
+      "User retrived and allow to use Alliance app",
       user,
     );
   } catch (error) {}

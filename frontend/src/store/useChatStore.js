@@ -1,8 +1,12 @@
 import { create } from "zustand";
+import { toast } from "react-toastify";
 import axiosInstance from "../services/url.service";
 import { getGlobalSocket, useSocketStore } from "./useSocketStore";
+import { useLayoutStore } from "./useLayoutStore";
+import { soundEffects } from "../utils/soundEffects";
 
 let typingTimerMap = new Map(); // userId -> setTimeout ID
+let processedMsgIds = new Set(); // Set of processed message IDs to prevent duplicate notifications
 
 export const useChatStore = create((set, get) => ({
   // --- States ---
@@ -14,8 +18,10 @@ export const useChatStore = create((set, get) => ({
   error: null,
   onlineUsers: new Map(),
   typingUsers: new Map(), // conversationId or userId -> Set of userIds
+  incomingNotification: null,
 
   // --- Actions ---
+  dismissNotification: () => set({ incomingNotification: null }),
 
   initializeSocketListeners: (passedSocket) => {
     const socket = passedSocket || getGlobalSocket();
@@ -38,12 +44,8 @@ export const useChatStore = create((set, get) => ({
     socket.off("userStatus");
     socket.off("user_status_list");
 
-    // 2. Register Active Listeners
-
+    // 2. Register Active Listeners (Single listener for incoming messages)
     socket.on("received_message", (message) => {
-      get().receiveMessage(message);
-    });
-    socket.on("receiveMessage", (message) => {
       get().receiveMessage(message);
     });
 
@@ -269,27 +271,62 @@ export const useChatStore = create((set, get) => ({
   receiveMessage: (message) => {
     if (!message) return;
 
+    const msgId = (message._id || message.id)?.toString();
+
+    // Deduplicate incoming message events
+    if (msgId) {
+      if (processedMsgIds.has(msgId)) return;
+      processedMsgIds.add(msgId);
+      if (processedMsgIds.size > 200) {
+        const firstKey = processedMsgIds.values().next().value;
+        processedMsgIds.delete(firstKey);
+      }
+    }
+
     const currentConv = get().currentConversation;
     const messages = get().messages;
+    const currentUser = get().currentUser;
 
-    const msgId = (message._id || message.id)?.toString();
     const msgConvId = (message.conversation?._id || message.conversation?.id || message.conversation)?.toString();
+    const senderId = (message.sender?._id || message.sender?.id || message.sender)?.toString();
+    const currentUserId = (currentUser?._id || currentUser?.id)?.toString();
 
-    // Prevent duplicate messages
-    const exists = messages.some((msg) => (msg._id || msg.id)?.toString() === msgId);
-    if (exists) return;
+    // Ignore if message was sent by current user
+    if (senderId && currentUserId && senderId === currentUserId) return;
+
+    // Check current layout state (active tab & selected contact)
+    const layoutState = useLayoutStore.getState();
+    const activeTab = layoutState.activeTab;
+    const selectedContact = layoutState.selectedContact;
+    const selectedContactId = (selectedContact?._id || selectedContact?.id)?.toString();
 
     const currentConvStr = currentConv ? currentConv.toString() : null;
 
-    // Append message if conversation matches or if no conversation selected
-    if (!currentConvStr || currentConvStr === msgConvId) {
-      set((state) => ({
-        messages: [...state.messages, message],
-      }));
+    // Check if the user currently has THIS particular contact's chat open
+    const isThisChatOpen =
+      activeTab === "chats" &&
+      selectedContactId &&
+      (selectedContactId === senderId || (currentConvStr && currentConvStr === msgConvId));
+
+    if (isThisChatOpen) {
+      // Receiver is viewing this conversation thread -> append message & mark as read
+      const exists = messages.some((msg) => (msg._id || msg.id)?.toString() === msgId);
+      if (!exists) {
+        set((state) => ({
+          messages: [...state.messages, message],
+        }));
+      }
       get().markAsRead();
+    } else {
+      // Particular chat tab is NOT open (or user is on another tab/contact)
+      // 1. Play audio notification chime
+      soundEffects.playNotificationSound();
+
+      // 2. Set custom Instagram-style floating notification popup
+      set({ incomingNotification: message });
     }
 
-    // Refresh conversation list to update sidebar preview
+    // Refresh conversation list so sidebar unread badge & lastMessage preview update
     get().fetchConversations();
   },
 

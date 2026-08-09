@@ -52,7 +52,7 @@ export default function Setting() {
           </div>
           <div>
             <h2 className="font-extrabold">{user?.username}</h2>
-            <p className={`text-sm truncate max-w-[200px] ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{user?.about || 'Hey there! I am using Talkative.'}</p>
+            <p className={`text-sm truncate max-w-[200px] ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>{user?.about || 'Hey there! I am using Alliance.'}</p>
           </div>
         </motion.div>
 
@@ -80,7 +80,7 @@ export default function Setting() {
           <span className="font-bold text-sm">Sign Out</span>
         </motion.button>
 
-        <p className={`text-center text-[10px] font-medium pb-2 ${isDark ? 'text-[#3F3F46]' : 'text-[#D6D3D1]'}`}>Talkative v1.0.0</p>
+        <p className={`text-center text-[10px] font-medium pb-2 ${isDark ? 'text-[#3F3F46]' : 'text-[#D6D3D1]'}`}>Alliance v1.0.0</p>
       </div>
     </div>
   );

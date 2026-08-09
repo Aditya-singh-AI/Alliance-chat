@@ -358,7 +358,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
                 <div className={`w-full p-4 rounded-xl text-left border ${isDark ? "bg-[#27272A] border-[#3F3F46]" : "bg-[#F5F5F4] border-[#E7E5E4]"}`}>
                   <span className="text-[10px] text-[#F97316] font-bold uppercase tracking-widest block mb-1.5">About</span>
-                  <p className="text-sm font-medium">{selectedContact.about || "Hey there! I am using Talkative."}</p>
+                  <p className="text-sm font-medium">{selectedContact.about || "Hey there! I am using Alliance."}</p>
                 </div>
 
                 {(selectedContact.email || selectedContact.phoneNumber) && (

@@ -76,9 +76,6 @@ const initializeSocket = (server) => {
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("received_message", message);
         }
-        if (receiverId) {
-          socket.to(receiverId).emit("received_message", message);
-        }
       } catch (err) {
         console.error("send_message error:", err.message);
         socket.emit("message_error", "Failed to send message.");

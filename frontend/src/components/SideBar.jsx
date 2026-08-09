@@ -68,17 +68,27 @@ const SideBar = ({ isMobile, onThemeClick }) => {
     <div className={`flex flex-col items-center w-[72px] h-screen py-5 justify-between select-none z-20 ${
       isDark ? 'bg-[#18181B] border-r border-[#27272A]' : 'bg-white border-r border-[#E7E5E4]'
     }`}>
-      {/* Top: Profile avatar */}
-      <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-        className="w-10 h-10 rounded-xl accent-gradient p-[2px] cursor-pointer shadow-md shadow-orange-500/15 hover:shadow-orange-500/25 transition-shadow"
-        onClick={handleProfileAvatarClick} title="Profile"
-      >
-        <div className={`w-full h-full rounded-[10px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
-          <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id || 'default'}`}
-            alt="Profile" className="w-full h-full object-cover"
-          />
-        </div>
-      </motion.div>
+      {/* Top: App Brand Logo & Profile */}
+      <div className="flex flex-col items-center gap-4">
+        <motion.img
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          src="/logo-orange.jpg"
+          alt="Alliance Brand"
+          className="w-10 h-10 rounded-2xl object-cover shadow-md shadow-orange-500/15 cursor-pointer"
+          onClick={() => { setActiveTab('chats'); navigate('/'); }}
+          title="Alliance"
+        />
+        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+          className="w-9 h-9 rounded-xl accent-gradient p-[2px] cursor-pointer shadow-md shadow-orange-500/15 hover:shadow-orange-500/25 transition-shadow"
+          onClick={handleProfileAvatarClick} title="Profile"
+        >
+          <div className={`w-full h-full rounded-[10px] overflow-hidden ${isDark ? 'bg-[#09090B]' : 'bg-white'}`}>
+            <img src={user?.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?._id || 'default'}`}
+              alt="Profile" className="w-full h-full object-cover"
+            />
+          </div>
+        </motion.div>
+      </div>
 
       {/* Navigation */}
       <div className="flex flex-col gap-2">
