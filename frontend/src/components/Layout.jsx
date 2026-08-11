@@ -26,6 +26,7 @@ const Layout = ({ children }) => {
   useEffect(() => {
     if (location.pathname === '/') setActiveTab('chats');
     else if (location.pathname === '/status') setActiveTab('status');
+    else if (location.pathname === '/calls') setActiveTab('calls');
     else if (location.pathname === '/settings') setActiveTab('settings');
   }, [location.pathname, setActiveTab]);
 
@@ -107,9 +108,9 @@ const Layout = ({ children }) => {
       return;
     }
 
-    // Swipe between tabs: Chats (/) <-> Status (/status) <-> Settings (/settings)
-    const routes = ['/', '/status', '/settings'];
-    const tabMap = { '/': 'chats', '/status': 'status', '/settings': 'settings' };
+    // Swipe between tabs: Chats (/) <-> Status (/status) <-> Calls (/calls) <-> Settings (/settings)
+    const routes = ['/', '/status', '/calls', '/settings'];
+    const tabMap = { '/': 'chats', '/status': 'status', '/calls': 'calls', '/settings': 'settings' };
     const currentIndex = routes.indexOf(location.pathname);
 
     if (currentIndex === -1) return;

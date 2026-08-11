@@ -298,6 +298,38 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  try {
+    const loggedInUser = req.user.userId;
+    if (!loggedInUser) {
+      return response(res, 401, "Unauthorized");
+    }
+
+    // 1. Delete all messages sent by or received by this user
+    await Message.deleteMany({
+      $or: [{ sender: loggedInUser }, { receiver: loggedInUser }],
+    });
+
+    // 2. Delete all conversations involving this user
+    await Conversation.deleteMany({
+      participants: loggedInUser,
+    });
+
+    // 3. Delete the user document
+    await User.findByIdAndDelete(loggedInUser);
+
+    // 4. Clear auth cookie
+    res.clearCookie("authToken", {
+      httpOnly: true,
+    });
+
+    return response(res, 200, "Account and all associated chats permanently deleted successfully");
+  } catch (error) {
+    console.error("deleteAccount error:", error);
+    return response(res, 500, "Internal Server Error", error.message);
+  }
+};
+
 module.exports = {
   sendOtp,
   verifyOtp,
@@ -305,4 +337,5 @@ module.exports = {
   logout,
   checkAuthenticated,
   getAllUsers,
+  deleteAccount,
 };

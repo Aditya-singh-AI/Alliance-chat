@@ -19,4 +19,5 @@ router.put(
 );
 router.get("/check-auth", authMiddleware, authController.checkAuthenticated);
 router.get("/users", authMiddleware, authController.getAllUsers);
+router.delete("/delete-account", authMiddleware, authController.deleteAccount);
 module.exports = router;

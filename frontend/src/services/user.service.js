@@ -46,3 +46,9 @@ export const getAllUsers = async () => {
   const response = await axiosInstance.get("/auth/users");
   return response.data; // Fetches contact entries excluding caller
 };
+
+// Permanently delete user account and all chat history
+export const deleteUserAccount = async () => {
+  const response = await axiosInstance.delete("/auth/delete-account");
+  return response.data;
+};

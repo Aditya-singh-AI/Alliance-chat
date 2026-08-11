@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaUser, FaBell, FaShieldAlt, FaPalette, FaSignOutAlt, FaChevronRight, FaChevronLeft, FaCamera, FaPen, FaCheck } from 'react-icons/fa';
+import { FaUser, FaBell, FaShieldAlt, FaPalette, FaSignOutAlt, FaChevronRight, FaChevronLeft, FaCamera, FaPen, FaCheck, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { IoMoon, IoSunny } from 'react-icons/io5';
 import { useUserStore } from '../../store/useUserStore';
 import { useThemeStore } from '../../store/useThemeStore';
-import { logoutUser, updateUserProfile } from '../../services/user.service';
+import { logoutUser, updateUserProfile, deleteUserAccount } from '../../services/user.service';
 import { toast } from 'react-toastify';
 
 const Setting = () => {
@@ -21,11 +21,34 @@ const Setting = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  // Delete Account State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const isDark = theme === 'dark';
 
   const handleLogout = async () => {
     try { await logoutUser(); } catch (_) {}
     clearUser();
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleting(true);
+      const res = await deleteUserAccount();
+      if (res.status === 'success') {
+        toast.success('Account permanently deleted');
+        clearUser();
+      } else {
+        toast.error(res.message || 'Failed to delete account');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error deleting account');
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   // Profile Update Handlers
@@ -423,16 +446,86 @@ const Setting = () => {
           onClick={handleLogout}
           className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition ${
             isDark
-              ? 'border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10'
-              : 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100'
+              ? 'border-amber-500/20 bg-amber-500/5 text-amber-400 hover:bg-amber-500/10'
+              : 'border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100'
           }`}
         >
-          <div className="w-9 h-9 bg-red-500/10 rounded-xl flex items-center justify-center">
-            <FaSignOutAlt className="w-4 h-4 text-red-500" />
+          <div className="w-9 h-9 bg-amber-500/10 rounded-xl flex items-center justify-center">
+            <FaSignOutAlt className="w-4 h-4 text-amber-500" />
           </div>
           <span className="font-bold text-sm">Log Out</span>
         </motion.button>
+
+        {/* Delete Account */}
+        <motion.button
+          id="delete-account-btn"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowDeleteModal(true)}
+          className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition ${
+            isDark
+              ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+              : 'border-red-300 bg-red-100/70 text-red-600 hover:bg-red-200'
+          }`}
+        >
+          <div className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center">
+            <FaTrash className="w-4 h-4 text-red-500" />
+          </div>
+          <div className="text-left">
+            <span className="font-bold text-sm block text-red-500">Delete Account</span>
+            <span className={`text-[10px] ${isDark ? 'text-red-300/70' : 'text-red-700/70'}`}>
+              Permanently delete profile and all chat history
+            </span>
+          </div>
+        </motion.button>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className={`w-full max-w-md p-6 rounded-3xl shadow-2xl border ${
+              isDark ? 'bg-[#18181B] border-[#27272A] text-white' : 'bg-white border-[#E7E5E4] text-slate-900'
+            }`}
+          >
+            <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FaExclamationTriangle className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-xl font-extrabold text-center mb-2">Delete Account Permanently?</h3>
+            <p className={`text-xs text-center leading-relaxed mb-6 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              This action <strong className="text-red-500">cannot be undone</strong>. All your personal profile data, conversation history, messages, and call records will be permanently erased from our servers.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className={`flex-1 py-3 text-xs font-bold rounded-2xl border transition ${
+                  isDark ? 'border-[#27272A] hover:bg-[#27272A] text-slate-300' : 'border-[#E7E5E4] hover:bg-slate-100 text-slate-700'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 py-3 text-xs font-bold rounded-2xl bg-red-600 hover:bg-red-700 active:scale-95 text-white transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <span>Deleting...</span>
+                ) : (
+                  <>
+                    <FaTrash className="w-3.5 h-3.5" />
+                    <span>Delete Permanently</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
