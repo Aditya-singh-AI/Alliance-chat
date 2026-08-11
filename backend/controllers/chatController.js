@@ -95,11 +95,24 @@ exports.getConversation = async (req, res) => {
       })
       .sort({ updatedAt: -1 });
 
+    const conversationsWithUnread = await Promise.all(
+      conversations.map(async (conv) => {
+        const unreadCount = await Message.countDocuments({
+          conversation: conv._id,
+          receiver: userId,
+          messageStatus: { $ne: "read" },
+        });
+        const convObj = conv.toObject();
+        convObj.unreadCount = unreadCount;
+        return convObj;
+      })
+    );
+
     return response(
       res,
       200,
       "Conversations retrieved successfully",
-      conversations,
+      conversationsWithUnread,
     );
   } catch (error) {
     console.error("Error in getConversation:", error);

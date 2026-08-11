@@ -7,6 +7,7 @@ const otpGenerator = require("../utils/otpGenerator");
 const { generateToken } = require("../utils/generateToken");
 const { uploadFileToCloudinary } = require("../config/cloudinaryConfig");
 const Conversation = require("../models/Conversation");
+const Message = require("../models/Message");
 
 //Step-1 Send OTP
 const sendOtp = async (req, res) => {
@@ -261,12 +262,27 @@ const getAllUsers = async (req, res) => {
         })
           .populate({
             path: "lastMessage",
-            select: "content createAt sender receiver",
+            select: "content createdAt created_at sender receiver contentType",
           })
           .lean();
+
+        let unreadCount = 0;
+        if (conversation) {
+          unreadCount = await Message.countDocuments({
+            conversation: conversation._id,
+            receiver: loggedInUser,
+            messageStatus: { $ne: "read" },
+          });
+        }
+
         return {
           ...user,
-          conversation: conversation || null,
+          conversation: conversation
+            ? {
+                ...conversation,
+                unreadCount,
+              }
+            : null,
         };
       }),
     );

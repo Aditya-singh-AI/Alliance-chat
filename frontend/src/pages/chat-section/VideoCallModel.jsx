@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useRef, useEffect, useMemo, useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import useVideoCallStore from "../../store/useVideoCallStore";
 import { useUserStore } from "../../store/useUserStore";
 import { useChatStore } from "../../store/useChatStore";
@@ -9,8 +10,90 @@ import {
   FaVideo,
   FaVideoSlash,
   FaMicrophone,
-  FaMicrophoneSlash
+  FaMicrophoneSlash,
+  FaPhone
 } from "react-icons/fa";
+
+// Interactive Slide To Answer Call Component
+const SlideToAnswer = ({ onAnswer, onDecline, callType }) => {
+  const containerRef = useRef(null);
+  const [dragProgress, setDragProgress] = useState(0);
+  const [hasTriggered, setHasTriggered] = useState(false);
+
+  const maxDrag = 190;
+
+  const handleDrag = (event, info) => {
+    if (hasTriggered) return;
+    const currentX = Math.max(0, Math.min(info.offset.x, maxDrag));
+    const progress = currentX / maxDrag;
+    setDragProgress(progress);
+
+    if (progress >= 0.75) {
+      setHasTriggered(true);
+      onAnswer();
+    }
+  };
+
+  const handleDragEnd = (event, info) => {
+    if (hasTriggered) return;
+    if (dragProgress < 0.75) {
+      setDragProgress(0);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-6 w-full max-w-sm px-4">
+      {/* Interactive Framer Motion Slide Track */}
+      <div
+        ref={containerRef}
+        className="relative w-full h-16 bg-slate-800/90 border border-emerald-500/40 rounded-full overflow-hidden flex items-center p-1 shadow-2xl backdrop-blur-md"
+      >
+        {/* Dynamic Glowing Fill Track */}
+        <div
+          className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-400 opacity-90 rounded-full transition-all duration-75"
+          style={{ width: `${Math.max(16, dragProgress * 100)}%` }}
+        />
+
+        {/* Dynamic Text Prompt */}
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-emerald-200 pointer-events-none select-none pl-12">
+          <span className="animate-pulse flex items-center gap-2">
+            Slide to answer <FaPhone className="w-3 h-3 animate-bounce" />
+          </span>
+        </div>
+
+        {/* Draggable Call Knob with Framer Motion physics */}
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: maxDrag }}
+          dragElastic={0.05}
+          dragSnapToOrigin={!hasTriggered}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          onClick={() => {
+            if (!hasTriggered) {
+              setHasTriggered(true);
+              onAnswer();
+            }
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative z-10 w-14 h-14 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/50 cursor-grab active:cursor-grabbing transition-colors flex-shrink-0"
+        >
+          {callType === "video" ? <FaVideo className="w-5 h-5 text-white" /> : <FaPhone className="w-5 h-5 text-white" />}
+        </motion.div>
+      </div>
+
+      {/* Decline Call Button */}
+      <button
+        onClick={onDecline}
+        className="px-6 py-2.5 bg-red-600/80 hover:bg-red-600 active:scale-95 text-white text-xs font-bold rounded-full flex items-center gap-2 shadow-lg hover:shadow-red-900/50 transition-all"
+      >
+        <FaPhoneSlash className="w-4 h-4" />
+        <span>Decline Call</span>
+      </button>
+    </div>
+  );
+};
 
 // WebRTC STUN configurations
 const iceConfiguration = {
@@ -163,8 +246,9 @@ const VideoCallModel = () => {
   useEffect(() => {
     if (localStream && localVideoRef.current) {
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch((err) => console.warn("Local preview play() notice:", err));
     }
-  }, [localStream]);
+  }, [localStream, isVideoEnabled]);
 
   // Bind remote media stream to remote video/audio element
   useEffect(() => {
@@ -507,23 +591,12 @@ const VideoCallModel = () => {
               Incoming {callType} call...
             </p>
 
-            {/* Answer & Decline buttons */}
-            <div className="flex gap-8">
-              <button
-                onClick={handleRejectCall}
-                className="w-16 h-16 bg-red-600 hover:bg-red-700 active:scale-95 transition-all text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-red-900/50"
-                title="Decline Call"
-              >
-                <FaPhoneSlash className="w-6 h-6" />
-              </button>
-              <button
-                onClick={handleAnswerCall}
-                className="w-16 h-16 bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-emerald-900/50 animate-bounce"
-                title="Accept Call"
-              >
-                <FaVideo className="w-6 h-6" />
-              </button>
-            </div>
+            {/* Slide To Answer Control */}
+            <SlideToAnswer
+              onAnswer={handleAnswerCall}
+              onDecline={handleRejectCall}
+              callType={callType}
+            />
           </div>
         )}
 
@@ -557,17 +630,17 @@ const VideoCallModel = () => {
             {/* PIP Local Camera View in Video Calling */}
             {callType === "video" && localStream && (
               <div className="absolute top-4 right-4 w-36 h-48 md:w-44 md:h-56 bg-slate-900 border-2 border-white rounded-xl overflow-hidden shadow-2xl z-10 transition-all hover:scale-105">
-                {isVideoEnabled ? (
-                  <video
-                    ref={localVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-slate-950 flex items-center justify-center text-slate-500">
-                    <FaVideoSlash className="w-6 h-6" />
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`w-full h-full object-cover ${isVideoEnabled ? "block" : "hidden"}`}
+                />
+                {!isVideoEnabled && (
+                  <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-2 p-2 text-center">
+                    <FaVideoSlash className="w-6 h-6 animate-pulse" />
+                    <span className="text-[10px] font-bold tracking-wide">Camera Off</span>
                   </div>
                 )}
               </div>

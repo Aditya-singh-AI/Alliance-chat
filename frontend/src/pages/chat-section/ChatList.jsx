@@ -10,7 +10,7 @@ import { getAllUsers } from '../../services/user.service';
 import { formatTime } from '../../utils/formatTime';
 
 const ChatList = () => {
-  useUserStore();
+  const { user } = useUserStore();
   const { selectedContact, setSelectedContact } = useLayoutStore();
   const { theme } = useThemeStore();
   useSocketStore((state) => state.onlineUsers);
@@ -24,6 +24,7 @@ const ChatList = () => {
 
   const searchInputRef = useRef(null);
   const isDark = theme === 'dark';
+  const currentUserId = (user?._id || user?.id)?.toString();
 
   const conversations = useChatStore((state) => state.conversations);
 
@@ -41,12 +42,30 @@ const ChatList = () => {
     fetchUsers();
   }, [conversations]);
 
-  const filteredUsers = allUsers.filter((u) =>
+  // Exclude current logged in user from all lists
+  const otherUsers = allUsers.filter((u) => {
+    const uid = (u._id || u.id)?.toString();
+    return uid && uid !== currentUserId;
+  });
+
+  // Main Chat List: only show users with active conversations OR currently selected contact
+  const mainListUsers = otherUsers
+    .filter((u) => {
+      const isSelected = selectedContact && (selectedContact._id || selectedContact.id)?.toString() === (u._id || u.id)?.toString();
+      return u.conversation !== null || isSelected;
+    })
+    .sort((a, b) => {
+      const dateA = a.conversation?.lastMessage?.createdAt || a.conversation?.updatedAt || 0;
+      const dateB = b.conversation?.lastMessage?.createdAt || b.conversation?.updatedAt || 0;
+      return new Date(dateB) - new Date(dateA);
+    });
+
+  const filteredUsers = mainListUsers.filter((u) =>
     u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const modalFilteredUsers = allUsers.filter((u) =>
+  const modalFilteredUsers = otherUsers.filter((u) =>
     u.username?.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(modalSearchTerm.toLowerCase())
   );
@@ -127,7 +146,8 @@ const ChatList = () => {
               const contactIdStr = (contact._id || contact.id)?.toString();
               const isSelected = (selectedContact?._id || selectedContact?.id)?.toString() === contactIdStr;
               const lastMsg = contact.conversation?.lastMessage;
-              const unreadCount = contact.conversation?.unreadCount || 0;
+              const lastMsgSenderId = (lastMsg?.sender?._id || lastMsg?.sender?.id || lastMsg?.sender)?.toString();
+              const unreadCount = (lastMsgSenderId === currentUserId) ? 0 : (contact.conversation?.unreadCount || 0);
               const isOnline = checkIsOnline(contact);
               const isLast = index === filteredUsers.length - 1;
 
