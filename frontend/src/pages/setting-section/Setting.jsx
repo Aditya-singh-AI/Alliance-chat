@@ -9,6 +9,7 @@ import { logoutUser, updateUserProfile, deleteUserAccount } from '../../services
 import { toast } from 'react-toastify';
 
 const Setting = () => {
+  const navigate = useNavigate();
   const { user, clearUser, setUser } = useUserStore();
   const { theme, setTheme } = useThemeStore();
   const [activeSection, setActiveSection] = useState(null); // null | 'profile' | 'notifications' | 'privacy'
