@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react";
 import { format } from "date-fns";
-import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash, IoClose, IoDownload, IoCall, IoVideocam } from "react-icons/io5";
+import { IoCheckmark, IoCheckmarkDone, IoChevronDown, IoCopy, IoTrash, IoClose, IoDownload, IoCall, IoVideocam, IoArrowUndo } from "react-icons/io5";
 import { useChatStore } from "../../store/useChatStore";
 import { useThemeStore } from "../../store/useThemeStore";
 import useVideoCallStore from "../../store/useVideoCallStore";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
-const MessageBubble = ({ message }) => {
+const MessageBubble = ({ message, onReplyMessage }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [showReactionsMenu, setShowReactionsMenu] = useState(false);
 
@@ -27,6 +27,7 @@ const MessageBubble = ({ message }) => {
   const handleReactionClick = (emoji) => { addReaction(message._id || message.id, emoji); setShowReactionsMenu(false); };
   const handleDelete = () => { deleteMessage(message._id || message.id); setShowOptions(false); };
   const handleCopy = () => { if (message.contentType === "text" && navigator.clipboard) navigator.clipboard.writeText(message.content); setShowOptions(false); };
+  const handleReply = () => { if (onReplyMessage) onReplyMessage(message); setShowOptions(false); };
 
   const reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
   const msgTimestamp = message.createdAt || message.created_at;
@@ -34,11 +35,16 @@ const MessageBubble = ({ message }) => {
   const [showFullImage, setShowFullImage] = useState(false);
   const mediaSrc = message.mediaUrl || message.imageOrVideoUrl;
 
+  const replyTarget = message.replyTo;
+
   return (
-    <div className={`flex ${isUserMessage ? "justify-end" : "justify-start"} group relative mb-1.5 select-none`}>
+    <div className={`flex ${isUserMessage ? "justify-end" : "justify-start"} group relative mb-1.5 select-none`} id={`msg-${message._id || message.id}`}>
       <div className="relative max-w-[85%] sm:max-w-[70%]">
         {/* Hover buttons */}
-        <div className={`absolute top-1 ${isUserMessage ? "-left-12" : "-right-12"} opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-0.5`}>
+        <div className={`absolute top-1 ${isUserMessage ? "-left-16" : "-right-16"} opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-0.5`}>
+          <button onClick={handleReply} title="Reply"
+            className={`p-1 rounded-lg shadow text-xs transition-colors ${isDark ? "bg-[#27272A] text-[#71717A] hover:text-white" : "bg-white text-[#A8A29E] hover:text-[#0C0A09] shadow-md"}`}
+          ><IoArrowUndo className="w-3.5 h-3.5" /></button>
           <button onClick={() => setShowReactionsMenu(!showReactionsMenu)}
             className={`p-1 rounded-lg shadow text-xs transition-colors ${isDark ? "bg-[#27272A] text-[#71717A] hover:text-white" : "bg-white text-[#A8A29E] hover:text-[#0C0A09] shadow-md"}`}
           >😀</button>
@@ -57,6 +63,20 @@ const MessageBubble = ({ message }) => {
               ? "bg-[#27272A] text-[#FAFAFA] border border-[#3F3F46]/50"
               : "bg-white text-[#0C0A09] border border-[#E7E5E4] shadow-sm"
         }`}>
+          {/* Quoted Message / Tagged Reply */}
+          {replyTarget && (
+            <div className={`mb-2 p-2.5 rounded-xl border-l-4 border-[#F97316] text-xs transition-all ${
+              isDark ? "bg-black/35 text-slate-200" : "bg-orange-500/10 text-slate-800"
+            }`}>
+              <span className="font-extrabold text-[#F97316] block text-[11px] truncate mb-0.5">
+                {replyTarget.sender?.username || (replyTarget.sender?._id === currentUserId ? "You" : "User")}
+              </span>
+              <p className="truncate text-[11.5px] opacity-90 font-medium">
+                {replyTarget.content || (replyTarget.contentType === "image" ? "📷 Photo" : replyTarget.contentType === "video" ? "📹 Video" : "Media")}
+              </p>
+            </div>
+          )}
+
           {/* Media */}
           {message.contentType === "image" && mediaSrc && (
             <img src={mediaSrc} alt="attachment" onClick={() => setShowFullImage(true)}
@@ -148,6 +168,9 @@ const MessageBubble = ({ message }) => {
               isDark ? "bg-[#18181B] border border-[#27272A] text-[#FAFAFA]" : "bg-white border border-[#E7E5E4] text-[#0C0A09] shadow-xl"
             }`}
           >
+            <button onClick={handleReply}
+              className={`flex items-center gap-2 w-full text-left py-2 px-3 rounded-lg font-medium transition-colors ${isDark ? "hover:bg-[#27272A]" : "hover:bg-[#F5F5F4]"}`}
+            ><IoArrowUndo className="w-3.5 h-3.5" /> Reply</button>
             {message.contentType === "text" && (
               <button onClick={handleCopy}
                 className={`flex items-center gap-2 w-full text-left py-2 px-3 rounded-lg font-medium transition-colors ${isDark ? "hover:bg-[#27272A]" : "hover:bg-[#F5F5F4]"}`}

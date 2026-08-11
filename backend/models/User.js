@@ -17,10 +17,14 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       lowercase: true,
-      validate: function (value) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      sparse: true,
+      validate: {
+        validator: function (value) {
+          if (!value) return true;
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: "Invalid email address",
       },
-      message: "Invalid email address",
     },
     emailOtp: {
       type: String,
@@ -53,6 +57,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     agreed: { type: Boolean, default: false },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
   },
   { timestamps: true },
 );

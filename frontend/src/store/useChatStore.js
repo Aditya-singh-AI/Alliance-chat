@@ -192,6 +192,12 @@ export const useChatStore = create((set, get) => ({
     const content = formData.get("content");
     const media = formData.get("media");
     const messageStatus = formData.get("messageStatus");
+    const replyToId = formData.get("replyTo");
+    const replyToObjRaw = formData.get("replyToObj");
+    let replyToObj = null;
+    if (replyToObjRaw) {
+      try { replyToObj = JSON.parse(replyToObjRaw); } catch (e) {}
+    }
 
     let conversationId = get().currentConversation;
 
@@ -224,6 +230,7 @@ export const useChatStore = create((set, get) => ({
           : "text",
       mediaUrl: media && media instanceof File ? URL.createObjectURL(media) : null,
       imageOrVideoUrl: media && media instanceof File ? URL.createObjectURL(media) : null,
+      replyTo: replyToObj || (replyToId ? { _id: replyToId } : null),
       createdAt: new Date().toISOString(),
       created_at: new Date().toISOString(),
       messageStatus: messageStatus || "sending",
@@ -369,6 +376,32 @@ export const useChatStore = create((set, get) => ({
       return true;
     } catch (err) {
       console.error("Error deleting message:", err);
+      set({ error: err.response?.data?.message || err.message });
+      return false;
+    }
+  },
+
+  deleteConversation: async (conversationId) => {
+    try {
+      await axiosInstance.delete(`/chat/conversations/${conversationId}`);
+      set((state) => ({
+        conversations: {
+          data: (state.conversations.data || []).filter(
+            (c) => (c._id || c.id)?.toString() !== conversationId.toString()
+          ),
+        },
+        currentConversation:
+          state.currentConversation?.toString() === conversationId.toString()
+            ? null
+            : state.currentConversation,
+        messages:
+          state.currentConversation?.toString() === conversationId.toString()
+            ? []
+            : state.messages,
+      }));
+      return true;
+    } catch (err) {
+      console.error("Error deleting conversation:", err);
       set({ error: err.response?.data?.message || err.message });
       return false;
     }

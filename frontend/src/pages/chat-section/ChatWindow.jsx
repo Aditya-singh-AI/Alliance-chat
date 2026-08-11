@@ -21,6 +21,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const [filePreview, setFilePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [replyingToMessage, setReplyingToMessage] = useState(null);
 
   // Dynamic visual viewport height for mobile keyboards
   const [viewportHeight, setViewportHeight] = useState(
@@ -50,6 +51,11 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
 
   const scrollToBottom = (behavior = "smooth") => { messageEndRef.current?.scrollIntoView({ behavior, block: "end" }); };
   useEffect(() => { scrollToBottom(); }, [messages]);
+
+  // Reset replying state when changing selected contact
+  useEffect(() => {
+    setReplyingToMessage(null);
+  }, [selectedContact]);
 
   // Handle dynamic visual viewport resize when mobile keyboard pops up
   useEffect(() => {
@@ -123,7 +129,14 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
     formData.append("messageStatus", isOnline ? "delivered" : "sent");
     if (message.trim()) formData.append("content", message.trim());
     if (selectedFile) formData.append("media", selectedFile);
-    setMessage(""); setSelectedFile(null); setFilePreview(null); setShowFileMenu(false);
+    if (replyingToMessage) {
+      const replyId = replyingToMessage._id || replyingToMessage.id;
+      if (replyId) {
+        formData.append("replyTo", replyId);
+        formData.append("replyToObj", JSON.stringify(replyingToMessage));
+      }
+    }
+    setMessage(""); setSelectedFile(null); setFilePreview(null); setShowFileMenu(false); setReplyingToMessage(null);
     try { await sendMessage(formData); } catch (err) { console.error("Failed:", err); }
   };
 
@@ -251,7 +264,7 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
           return (
             <React.Fragment key={msg._id || msg.id}>
               {showDate && renderDateSeparator(msgDate)}
-              <MessageBubble message={msg} />
+              <MessageBubble message={msg} onReplyMessage={(targetMsg) => setReplyingToMessage(targetMsg)} />
             </React.Fragment>
           );
         })}
@@ -267,6 +280,34 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
           >✕</button>
         </div>
       )}
+
+      {/* Replying Preview Bar */}
+      <AnimatePresence>
+        {replyingToMessage && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className={`px-4 py-2 border-t flex items-center justify-between gap-3 flex-shrink-0 z-30 ${
+              isDark ? "bg-[#1C1C20] border-[#27272A]" : "bg-orange-50/75 border-orange-100"
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0 flex-1 border-l-4 border-[#F97316] pl-2.5 py-0.5">
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] font-extrabold text-[#F97316] block truncate">
+                  Replying to {replyingToMessage.sender?.username || (replyingToMessage.sender?._id === (currentUser?._id || currentUser?.id) ? "Yourself" : "User")}
+                </span>
+                <p className={`text-xs truncate font-medium ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                  {replyingToMessage.content || (replyingToMessage.contentType === "image" ? "📷 Photo" : replyingToMessage.contentType === "video" ? "📹 Video" : "Media")}
+                </p>
+              </div>
+            </div>
+            <button onClick={() => setReplyingToMessage(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+              <IoClose className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Input Field - Fixed at bottom of active visual viewport */}
       <div className={`px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 border-t flex-shrink-0 z-30 ${isDark ? "bg-[#18181B] border-[#27272A]" : "bg-white border-[#E7E5E4]"}`}>

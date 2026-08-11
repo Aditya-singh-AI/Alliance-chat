@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaPlus, FaSearch, FaTimes, FaUserPlus } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaTimes, FaUserPlus, FaTrash } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserStore } from '../../store/useUserStore';
 import { useLayoutStore } from '../../store/useLayoutStore';
@@ -8,13 +8,14 @@ import { useSocketStore } from '../../store/useSocketStore';
 import { useChatStore } from '../../store/useChatStore';
 import { getAllUsers } from '../../services/user.service';
 import { formatTime } from '../../utils/formatTime';
+import { toast } from 'react-toastify';
 
 const ChatList = () => {
   const { user } = useUserStore();
   const { selectedContact, setSelectedContact } = useLayoutStore();
   const { theme } = useThemeStore();
   useSocketStore((state) => state.onlineUsers);
-  const { isUserOnline } = useChatStore();
+  const { isUserOnline, deleteConversation, fetchConversations } = useChatStore();
 
   const [allUsers, setAllUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +23,12 @@ const ChatList = () => {
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
 
+  // Delete Conversation Modal State
+  const [deletingChatContact, setDeletingChatContact] = useState(null);
+  const [isDeletingConv, setIsDeletingConv] = useState(false);
+
   const searchInputRef = useRef(null);
+  const touchTimerRef = useRef(null);
   const isDark = theme === 'dark';
   const currentUserId = (user?._id || user?.id)?.toString();
 
@@ -74,6 +80,50 @@ const ChatList = () => {
     const contactIdStr = (contact?._id || contact?.id)?.toString();
     if (!contactIdStr) return false;
     return isUserOnline(contactIdStr);
+  };
+
+  // Long press handlers
+  const handleTouchStart = (contact) => {
+    touchTimerRef.current = setTimeout(() => {
+      setDeletingChatContact(contact);
+    }, 550);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  const handleContextMenu = (e, contact) => {
+    e.preventDefault();
+    setDeletingChatContact(contact);
+  };
+
+  const handleConfirmDeleteConversation = async () => {
+    if (!deletingChatContact) return;
+    const convId = deletingChatContact.conversation?._id || deletingChatContact.conversation?.id;
+    try {
+      setIsDeletingConv(true);
+      if (convId) {
+        await deleteConversation(convId);
+      }
+      if (
+        selectedContact &&
+        (selectedContact._id || selectedContact.id)?.toString() ===
+          (deletingChatContact._id || deletingChatContact.id)?.toString()
+      ) {
+        setSelectedContact(null);
+      }
+      toast.success(`Chat deleted from your view`);
+      fetchConversations();
+    } catch (err) {
+      toast.error('Failed to delete conversation');
+    } finally {
+      setIsDeletingConv(false);
+      setDeletingChatContact(null);
+    }
   };
 
   return (
@@ -152,12 +202,18 @@ const ChatList = () => {
               const isLast = index === filteredUsers.length - 1;
 
               return (
-                <div key={contact._id || contact.id} className="relative">
+                <div key={contact._id || contact.id} className="relative group">
                   <motion.div
                     id={`contact-${contact._id}`}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedContact(contact)}
+                    onTouchStart={() => handleTouchStart(contact)}
+                    onTouchEnd={handleTouchEnd}
+                    onMouseDown={() => handleTouchStart(contact)}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                    onContextMenu={(e) => handleContextMenu(e, contact)}
                     className={`relative flex items-center gap-3.5 px-3.5 py-3 cursor-pointer rounded-2xl transition-all duration-200 ${
                       isSelected
                         ? isDark
@@ -219,11 +275,23 @@ const ChatList = () => {
                         }`}>
                           {lastMsg ? lastMsg.content || 'Media' : contact.about || 'Available'}
                         </p>
-                        {unreadCount > 0 && (
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold accent-gradient text-white rounded-full flex-shrink-0 min-w-[20px] text-center shadow-md shadow-orange-500/30">
-                            {unreadCount}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-0.5 text-[10px] font-extrabold accent-gradient text-white rounded-full flex-shrink-0 min-w-[20px] text-center shadow-md shadow-orange-500/30">
+                              {unreadCount}
+                            </span>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingChatContact(contact);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition-opacity"
+                            title="Delete Conversation"
+                          >
+                            <FaTrash className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -242,6 +310,55 @@ const ChatList = () => {
           </div>
         )}
       </div>
+
+      {/* DELETE CONVERSATION CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {deletingChatContact && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl border ${
+                isDark ? 'bg-[#18181B] border-[#27272A] text-white' : 'bg-white border-[#E7E5E4] text-slate-900'
+              }`}
+            >
+              <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <FaTrash className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="text-base font-extrabold text-center mb-1">Delete Chat?</h3>
+              <p className={`text-xs text-center leading-relaxed mb-6 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Delete conversation with <strong className="text-red-500">{deletingChatContact.username}</strong>? This will remove the chat from your view.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeletingChatContact(null)}
+                  disabled={isDeletingConv}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-2xl border transition ${
+                    isDark ? 'border-[#27272A] hover:bg-[#27272A] text-slate-300' : 'border-[#E7E5E4] hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteConversation}
+                  disabled={isDeletingConv}
+                  className="flex-1 py-2.5 text-xs font-bold rounded-2xl bg-red-600 hover:bg-red-700 active:scale-95 text-white transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isDeletingConv ? (
+                    <span>Deleting...</span>
+                  ) : (
+                    <>
+                      <FaTrash className="w-3 h-3" />
+                      <span>Delete Chat</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* New Chat Modal */}
       <AnimatePresence>
@@ -311,3 +428,4 @@ const ChatList = () => {
 };
 
 export default ChatList;
+

@@ -11,6 +11,7 @@ const initializeSocket = require("./services/socketService");
 const authRoute = require("./routes/authRoute");
 const chatRoute = require("./routes/chatroute");
 const statusRoute = require("./routes/statusRoute");
+const adminRoute = require("./routes/adminRoute");
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +69,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/status", statusRoute);
+app.use("/api/admin", adminRoute);
 
 // JSON parse error handler
 app.use((err, req, res, next) => {

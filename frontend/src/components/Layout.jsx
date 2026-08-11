@@ -145,54 +145,60 @@ const Layout = ({ children }) => {
 
       {/* Main content panels */}
       <div className={`flex flex-1 ${isMobile ? 'flex-col' : 'flex-row'} h-[100dvh] overflow-hidden`}>
-        <AnimatePresence mode="wait">
-          {/* LEFT PANEL: Chat list / nav page */}
-          {(!isMobile || !selectedContact) && (
-            <motion.div
-              key="list-panel"
-              initial={{ opacity: 0, x: isMobile ? -60 : 0 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: isMobile ? -60 : 0 }}
-              transition={{ duration: 0.2 }}
-              className={`h-full overflow-hidden ${isMobile ? 'w-full pb-16' : 'w-[380px] lg:w-[400px] flex-shrink-0'} border-r ${
-                isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'
-              }`}
-            >
-              {children}
-            </motion.div>
-          )}
+        {location.pathname === '/admin' ? (
+          <div className="flex-1 h-full overflow-hidden w-full">
+            {children}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {/* LEFT PANEL: Chat list / nav page */}
+            {(!isMobile || !selectedContact) && (
+              <motion.div
+                key="list-panel"
+                initial={{ opacity: 0, x: isMobile ? -60 : 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: isMobile ? -60 : 0 }}
+                transition={{ duration: 0.2 }}
+                className={`h-full overflow-hidden ${isMobile ? 'w-full pb-16' : 'w-[380px] lg:w-[400px] flex-shrink-0'} border-r ${
+                  isDark ? 'border-[#27272A]' : 'border-[#E7E5E4]'
+                }`}
+              >
+                {children}
+              </motion.div>
+            )}
 
-          {/* RIGHT PANEL: Chat window or empty state */}
-          {(!isMobile || selectedContact) && (
-            <motion.div
-              key="chat-window"
-              initial={{ opacity: 0, x: isMobile ? 60 : 0 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: isMobile ? 60 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 h-full overflow-hidden flex flex-col"
-            >
-              {selectedContact ? (
-                <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} />
-              ) : (
-                /* Empty state */
-                <div className={`h-full flex flex-col items-center justify-center text-center p-8 ${
-                  isDark ? 'bg-[#09090B]' : 'bg-[#FAFAF9]'
-                }`}>
-                  <img
-                    src="/logo-orange.jpg"
-                    alt="Alliance Logo"
-                    className="w-24 h-24 rounded-3xl object-cover mb-5 shadow-2xl shadow-orange-500/25 border border-orange-500/20"
-                  />
-                  <h3 className="text-2xl font-extrabold mb-2 accent-gradient-text">Alliance</h3>
-                  <p className={`text-sm max-w-xs leading-relaxed ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
-                    Fast, secure messaging at your fingertips. Pick a conversation from the sidebar to begin.
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* RIGHT PANEL: Chat window or empty state */}
+            {(!isMobile || selectedContact) && (
+              <motion.div
+                key="chat-window"
+                initial={{ opacity: 0, x: isMobile ? 60 : 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: isMobile ? 60 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex-1 h-full overflow-hidden flex flex-col"
+              >
+                {selectedContact ? (
+                  <ChatWindow selectedContact={selectedContact} setSelectedContact={setSelectedContact} />
+                ) : (
+                  /* Empty state */
+                  <div className={`h-full flex flex-col items-center justify-center text-center p-8 ${
+                    isDark ? 'bg-[#09090B]' : 'bg-[#FAFAF9]'
+                  }`}>
+                    <img
+                      src="/logo-orange.jpg"
+                      alt="Alliance Logo"
+                      className="w-24 h-24 rounded-3xl object-cover mb-5 shadow-2xl shadow-orange-500/25 border border-orange-500/20"
+                    />
+                    <h3 className="text-2xl font-extrabold mb-2 accent-gradient-text">Alliance</h3>
+                    <p className={`text-sm max-w-xs leading-relaxed ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                      Fast, secure messaging at your fingertips. Pick a conversation from the sidebar to begin.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* Video Call Manager — listens for incoming calls globally */}

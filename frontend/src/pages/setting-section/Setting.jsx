@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaUser, FaBell, FaShieldAlt, FaPalette, FaSignOutAlt, FaChevronRight, FaChevronLeft, FaCamera, FaPen, FaCheck, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import { IoMoon, IoSunny } from 'react-icons/io5';
@@ -310,6 +311,7 @@ const Setting = () => {
       title: 'Account',
       items: [
         { id: 'profile', icon: FaUser, label: 'Profile', desc: 'Name, photo, about' },
+        ...(user?.role === 'admin' ? [{ id: 'admin', icon: FaShieldAlt, label: 'Admin Dashboard', desc: 'Manage user registrations & system details' }] : []),
         { id: 'notifications', icon: FaBell, label: 'Notifications', desc: 'Message & call tones' },
         { id: 'privacy', icon: FaShieldAlt, label: 'Privacy', desc: 'Last seen, status, read receipts' },
       ],
@@ -418,7 +420,10 @@ const Setting = () => {
                   <motion.div
                     key={item.id}
                     whileHover={{ x: 2 }}
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => {
+                      if (item.id === 'admin') navigate('/admin');
+                      else setActiveSection(item.id);
+                    }}
                     className={`flex items-center gap-4 p-4 cursor-pointer ${
                       !isLast ? `border-b ${isDark ? 'border-[#3F3F46]' : 'border-[#E7E5E4]'}` : ''
                     } ${isDark ? 'hover:bg-[#323238]' : 'hover:bg-[#F5F5F4]'}`}

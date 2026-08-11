@@ -13,6 +13,7 @@ import Home from "./components/Home";
 import StatusPage from "./pages/status-section/StatusPage";
 import CallsPage from "./pages/calls-section/CallsPage";
 import SettingPage from "./pages/setting-section/SettingPage";
+import AdminPage from "./pages/admin-section/AdminPage";
 
 const App = () => {
   const user = useUserStore((state) => state.user);
@@ -63,6 +64,7 @@ const App = () => {
           <Route path="/status" element={<StatusPage />} />
           <Route path="/calls" element={<CallsPage />} />
           <Route path="/settings" element={<SettingPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>
     </Router>

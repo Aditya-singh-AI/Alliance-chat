@@ -6,15 +6,17 @@ const response = require("../utils/responseHandler");
 // ─── Send Message ────────────────────────────────────────────────────────────
 exports.sendMessage = async (req, res) => {
   try {
-    const { senderId, receiverId, content, messageStatus } = req.body;
+    const { senderId, receiverId, content, messageStatus, replyTo } = req.body;
     const file = req.file;
 
     // Find or create conversation
     const participants = [senderId, receiverId].sort();
     let conversation = await Conversation.findOne({ participants });
     if (!conversation) {
-      conversation = new Conversation({ participants });
+      conversation = new Conversation({ participants, deletedBy: [] });
       await conversation.save();
+    } else {
+      conversation.deletedBy = [];
     }
 
     let imageOrVideoUrl = null;
@@ -49,6 +51,7 @@ exports.sendMessage = async (req, res) => {
       imageOrVideoUrl,
       contentType,
       messageStatus: messageStatus || "sent",
+      replyTo: replyTo || null,
     });
     await message.save();
 
@@ -59,7 +62,11 @@ exports.sendMessage = async (req, res) => {
 
     const populatedMessage = await Message.findById(message._id)
       .populate("sender", "username profilePicture")
-      .populate("receiver", "username profilePicture");
+      .populate("receiver", "username profilePicture")
+      .populate({
+        path: "replyTo",
+        populate: { path: "sender", select: "username profilePicture" },
+      });
 
     // Real-time: emit to receiver via Socket.IO
     if (req.io && req.socketUserMap) {
@@ -84,7 +91,10 @@ exports.sendMessage = async (req, res) => {
 exports.getConversation = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const conversations = await Conversation.find({ participants: userId })
+    const conversations = await Conversation.find({
+      participants: userId,
+      deletedBy: { $ne: userId },
+    })
       .populate("participants", "username profilePicture isOnline lastSeen")
       .populate({
         path: "lastMessage",
@@ -136,6 +146,10 @@ exports.getMessages = async (req, res) => {
     const messages = await Message.find({ conversation: conversationId })
       .populate("sender", "username profilePicture")
       .populate("receiver", "username profilePicture")
+      .populate({
+        path: "replyTo",
+        populate: { path: "sender", select: "username profilePicture" },
+      })
       .sort({ createdAt: 1 });
 
     // Mark unread messages sent TO this user as read
@@ -223,6 +237,42 @@ exports.deleteMessage = async (req, res) => {
     return response(res, 200, "Message deleted successfully");
   } catch (error) {
     console.error("Error in deleteMessage:", error);
+    return response(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+// ─── Delete Conversation (Per User) ──────────────────────────────────────────
+exports.deleteConversation = async (req, res) => {
+  const { conversationId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return response(res, 404, "Conversation not found");
+    }
+
+    if (!conversation.participants.map((p) => p.toString()).includes(userId)) {
+      return response(res, 403, "Not authorized to delete this conversation");
+    }
+
+    if (!conversation.deletedBy) {
+      conversation.deletedBy = [];
+    }
+
+    const userIdStr = userId.toString();
+    if (!conversation.deletedBy.map((id) => id.toString()).includes(userIdStr)) {
+      conversation.deletedBy.push(userId);
+    }
+
+    await conversation.save();
+
+    // Delete messages associated with this conversation for this user
+    await Message.deleteMany({ conversation: conversationId });
+
+    return response(res, 200, "Conversation deleted successfully from your view");
+  } catch (error) {
+    console.error("Error in deleteConversation:", error);
     return response(res, 500, "Internal Server Error", error.message);
   }
 };

@@ -48,3 +48,12 @@ export const markAsRead = async (messageIds) => {
     throw err.response?.data || err.message;
   }
 };
+
+export const deleteConversation = async (conversationId) => {
+  try {
+    const res = await axiosInstance.delete(`/chat/conversations/${conversationId}`);
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};

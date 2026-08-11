@@ -24,5 +24,10 @@ router.delete(
   authMiddleware,
   chatController.deleteMessage,
 );
+router.delete(
+  "/conversations/:conversationId",
+  authMiddleware,
+  chatController.deleteConversation,
+);
 
 module.exports = router;

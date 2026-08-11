@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { IoChatbubblesSharp, IoTimeSharp, IoSettingsSharp, IoLogOutSharp, IoCallSharp } from 'react-icons/io5';
+import { FaShieldAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useUserStore } from '../store/useUserStore';
 import { useLayoutStore } from '../store/useLayoutStore';
@@ -30,6 +31,7 @@ const SideBar = ({ isMobile, onThemeClick }) => {
     { id: 'status', path: '/status', label: 'Status', icon: IoTimeSharp },
     { id: 'calls', path: '/calls', label: 'Calls', icon: IoCallSharp },
     { id: 'settings', path: '/settings', label: 'Settings', icon: IoSettingsSharp },
+    ...(user?.role === 'admin' ? [{ id: 'admin', path: '/admin', label: 'Admin', icon: FaShieldAlt }] : []),
   ];
 
   const isDark = theme === 'dark';
