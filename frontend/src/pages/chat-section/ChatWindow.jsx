@@ -335,7 +335,21 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/*" className="hidden" />
         </div>
 
-        <input type="text" name="chat-message-input" id="chat-message-input" autoComplete="off" autoCorrect="off" autoCapitalize="sentences" spellCheck="true" data-lpignore="true" data-form-type="other" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyPress} onFocus={handleInputFocus}
+        <input
+          type="text"
+          name="search"
+          id="chat-message-input"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          aria-autocomplete="none"
+          data-lpignore="true"
+          data-form-type="other"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyPress}
+          onFocus={handleInputFocus}
           placeholder="Type a message..."
           className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium outline-none transition-all border ${
             isDark ? "bg-[#27272A] text-[#FAFAFA] placeholder-[#71717A] border-[#27272A] focus:border-[#F97316]/50" : "bg-[#F5F5F4] text-[#0C0A09] placeholder-[#A8A29E] border-[#F5F5F4] focus:border-[#F97316]/50"

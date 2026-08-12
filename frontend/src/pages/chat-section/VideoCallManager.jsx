@@ -80,9 +80,21 @@ const VideoCallManager = () => {
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(offer));
           await useVideoCallStore.getState().processQueuedIceCandidates();
-          window.dispatchEvent(new CustomEvent("webRtcOfferReceived"));
+
+          // Create SDP Answer & emit to caller
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+
+          if (socket) {
+            console.log("[VideoCallManager] Emitting webRtcAnswer back to caller:", senderId);
+            socket.emit("webRtcAnswer", {
+              answer,
+              receiverId: senderId,
+              callId
+            });
+          }
         } catch (e) {
-          console.error("Error setting remote description for offer:", e);
+          console.error("Error setting remote description / creating answer for offer:", e);
         }
       } else {
         console.log("[VideoCallManager] PeerConnection not ready yet. Storing offer in pendingOffer...");

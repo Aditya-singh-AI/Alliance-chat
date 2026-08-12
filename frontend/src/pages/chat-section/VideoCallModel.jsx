@@ -117,6 +117,7 @@ const getSocket = () => getGlobalSocket() || useSocketStore.getState().socket;
 const VideoCallModel = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const storeSocket = useSocketStore((state) => state.socket);
 
   const {
@@ -254,18 +255,28 @@ const VideoCallModel = () => {
     }
   }, [localStream, isVideoEnabled]);
 
-  // Bind remote media stream to remote video/audio element
+  // Bind remote media stream to remote video & audio elements
   useEffect(() => {
     if (remoteVideoRef.current) {
-      if (remoteStream) {
-        console.log("[WebRTC] Attaching remoteStream to media element. Tracks:", remoteStream.getTracks());
+      if (remoteStream && callType === "video") {
+        console.log("[WebRTC] Attaching remoteStream to video element. Tracks:", remoteStream.getTracks());
         remoteVideoRef.current.srcObject = remoteStream;
-        remoteVideoRef.current.play().catch((err) => console.warn("Remote playback play() notice:", err));
+        remoteVideoRef.current.play().catch((err) => console.warn("Remote video playback play() notice:", err));
       } else {
         remoteVideoRef.current.srcObject = null;
       }
     }
-  }, [remoteStream]);
+
+    if (remoteAudioRef.current) {
+      if (remoteStream) {
+        console.log("[WebRTC] Attaching remoteStream to dedicated audio element. Tracks:", remoteStream.getTracks());
+        remoteAudioRef.current.srcObject = remoteStream;
+        remoteAudioRef.current.play().catch((err) => console.warn("Remote audio playback play() notice:", err));
+      } else {
+        remoteAudioRef.current.srcObject = null;
+      }
+    }
+  }, [remoteStream, callType]);
 
   // Initialize media devices (Camera and Microphone)
   const initializeMedia = useCallback(async () => {
@@ -361,7 +372,11 @@ const VideoCallModel = () => {
 
     // Monitor peer connection status
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === "failed") {
+      console.log("[WebRTC] PeerConnection state changed:", pc.connectionState);
+      if (pc.connectionState === "connected") {
+        setCallStatus("connected");
+        setCallActive(true);
+      } else if (pc.connectionState === "failed") {
         setCallStatus("failed");
         setTimeout(() => {
           handleEndCall();
@@ -540,7 +555,10 @@ const VideoCallModel = () => {
         {showActiveUi && (
           <div className="flex-1 relative bg-black flex items-center justify-center">
 
-            {/* Remote Media Element — ALWAYS mounted in DOM so audio plays for both voice & video calls */}
+            {/* Dedicated HTML5 Audio Element for Voice Call Audio Output */}
+            <audio ref={remoteAudioRef} autoPlay playsInline />
+
+            {/* Remote Video Media Element for Video Calling */}
             <video
               ref={remoteVideoRef}
               autoPlay
