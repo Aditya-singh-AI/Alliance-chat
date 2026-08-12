@@ -13,6 +13,8 @@ export const useLayoutStore = create(
     }),
     {
       name: "talkative-layout-storage",
+      partialize: (state) => ({ activeTab: state.activeTab }), // Omit selectedContact to prevent cross-user chat leaks
     },
   ),
 );
+

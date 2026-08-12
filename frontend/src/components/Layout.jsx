@@ -36,27 +36,13 @@ const Layout = ({ children }) => {
     if (userId) { connectSocket(userId); }
   }, [user?._id, user?.id, connectSocket]);
 
-  // Real-time responsive detection & visual viewport adjustment for mobile keyboards
+  // Real-time responsive detection for mobile viewports
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
 
-    const handleVisualViewportResize = () => {
-      if (window.visualViewport) {
-        window.scrollTo(0, 0);
-      }
-    };
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleVisualViewportResize);
-      window.visualViewport.addEventListener('scroll', handleVisualViewportResize);
-    }
-
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleVisualViewportResize);
-        window.visualViewport.removeEventListener('scroll', handleVisualViewportResize);
-      }
     };
   }, []);
 

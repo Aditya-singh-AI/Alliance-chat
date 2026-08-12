@@ -4,11 +4,13 @@ import { useUserStore } from '../store/useUserStore';
 import { checkUserAuth } from '../services/user.service';
 import Loader from '../utils/Loader';
 
+import { resetAllStores } from '../utils/storeReset';
+
 // ==========================================
 // Guarded Route: Users MUST be logged in
 // ==========================================
 export const ProtectedRoute = () => {
-  const { isAuthenticated, setUser, clearUser } = useUserStore();
+  const { isAuthenticated, setUser } = useUserStore();
   const [isChecking, setIsChecking] = useState(true);
   const location = useLocation();
 
@@ -19,16 +21,16 @@ export const ProtectedRoute = () => {
         if (response.status === 'success' && response.data) {
           setUser(response.data); // Store returned profile details
         } else {
-          clearUser();
+          resetAllStores();
         }
       } catch (error) {
-        clearUser(); // Purge caches on auth fail
+        resetAllStores(); // Purge caches on auth fail
       } finally {
         setIsChecking(false);
       }
     };
     verifyAuth();
-  }, [setUser, clearUser]);
+  }, [setUser]);
 
   // Show full-screen loader while verifying session
   if (isChecking) return <Loader />;

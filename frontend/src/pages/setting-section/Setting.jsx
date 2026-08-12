@@ -8,9 +8,11 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { logoutUser, updateUserProfile, deleteUserAccount } from '../../services/user.service';
 import { toast } from 'react-toastify';
 
+import { resetAllStores } from '../../utils/storeReset';
+
 const Setting = () => {
   const navigate = useNavigate();
-  const { user, clearUser, setUser } = useUserStore();
+  const { user, setUser } = useUserStore();
   const { theme, setTheme } = useThemeStore();
   const [activeSection, setActiveSection] = useState(null); // null | 'profile' | 'notifications' | 'privacy'
 
@@ -31,7 +33,7 @@ const Setting = () => {
 
   const handleLogout = async () => {
     try { await logoutUser(); } catch (_) {}
-    clearUser();
+    resetAllStores();
   };
 
   const handleDeleteAccount = async () => {
@@ -40,7 +42,7 @@ const Setting = () => {
       const res = await deleteUserAccount();
       if (res.status === 'success') {
         toast.success('Account permanently deleted');
-        clearUser();
+        resetAllStores();
       } else {
         toast.error(res.message || 'Failed to delete account');
       }

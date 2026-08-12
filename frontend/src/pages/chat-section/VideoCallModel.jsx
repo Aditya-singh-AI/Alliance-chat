@@ -244,18 +244,26 @@ const VideoCallModel = () => {
 
   // Bind local media stream to local video element
   useEffect(() => {
-    if (localStream && localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().catch((err) => console.warn("Local preview play() notice:", err));
+    if (localVideoRef.current) {
+      if (localStream) {
+        localVideoRef.current.srcObject = localStream;
+        localVideoRef.current.play().catch((err) => console.warn("Local preview play() notice:", err));
+      } else {
+        localVideoRef.current.srcObject = null;
+      }
     }
   }, [localStream, isVideoEnabled]);
 
   // Bind remote media stream to remote video/audio element
   useEffect(() => {
-    if (remoteStream && remoteVideoRef.current) {
-      console.log("[WebRTC] Attaching remoteStream to media element. Tracks:", remoteStream.getTracks());
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play().catch((err) => console.warn("Remote playback play() notice:", err));
+    if (remoteVideoRef.current) {
+      if (remoteStream) {
+        console.log("[WebRTC] Attaching remoteStream to media element. Tracks:", remoteStream.getTracks());
+        remoteVideoRef.current.srcObject = remoteStream;
+        remoteVideoRef.current.play().catch((err) => console.warn("Remote playback play() notice:", err));
+      } else {
+        remoteVideoRef.current.srcObject = null;
+      }
     }
   }, [remoteStream]);
 
@@ -270,7 +278,7 @@ const VideoCallModel = () => {
       return stream;
     } catch (error) {
       console.error("Failed to access camera/mic media devices:", error);
-      // Smart Fallback: If webcam is in use by another tab/browser on 1 laptop, fall back to audio-only stream
+      // Smart Fallback: If webcam is in use by another tab/browser, fall back to audio-only stream
       if (callType === "video") {
         try {
           console.warn("[WebRTC] Webcam hardware in use. Falling back to audio-only stream...");
@@ -328,13 +336,15 @@ const VideoCallModel = () => {
 
     // ICE Candidate generation callback
     pc.onicecandidate = (event) => {
-      const recipientId = currentCall?.participantId || incomingCall?.callerId;
+      const state = useVideoCallStore.getState();
+      const recipientId = state.currentCall?.participantId || state.incomingCall?.callerId;
+      const callId = state.currentCall?.callId || state.incomingCall?.callId;
       const sock = getSocket();
       if (event.candidate && sock && recipientId) {
         sock.emit("webRtcIceCandidate", {
           candidate: event.candidate,
           receiverId: recipientId,
-          callId: currentCall?.callId || incomingCall?.callId
+          callId
         });
       }
     };
@@ -360,8 +370,32 @@ const VideoCallModel = () => {
     };
 
     setPeerConnection(pc);
+
+    // Process pending offer if it arrived while media was initializing
+    const pendingOffer = useVideoCallStore.getState().pendingOffer;
+    if (pendingOffer) {
+      (async () => {
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(pendingOffer));
+          useVideoCallStore.getState().setPendingOffer(null);
+          await useVideoCallStore.getState().processQueuedIceCandidates();
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          const state = useVideoCallStore.getState();
+          const recipientId = state.currentCall?.participantId || state.incomingCall?.callerId;
+          const callId = state.currentCall?.callId || state.incomingCall?.callId;
+          const sock = getSocket();
+          if (sock && recipientId) {
+            sock.emit("webRtcAnswer", { answer, receiverId: recipientId, callId });
+          }
+        } catch (err) {
+          console.error("Failed processing pending SDP offer:", err);
+        }
+      })();
+    }
+
     return pc;
-  }, [currentCall, incomingCall, setRemoteStream, setPeerConnection, setCallStatus, handleEndCall]);
+  }, [setRemoteStream, setPeerConnection, setCallStatus, handleEndCall]);
 
   // ----------------------------------------------------
   // CALLER SEQUENCE: Triggered upon recipient acceptance
@@ -372,7 +406,6 @@ const VideoCallModel = () => {
       const stream = await initializeMedia();
       const pc = createPeerConnection(stream);
 
-      // Generate SDP Offer
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: callType === "video"
@@ -380,13 +413,14 @@ const VideoCallModel = () => {
 
       await pc.setLocalDescription(offer);
 
-      // Emit SDP Offer to peer
       const sock = getSocket();
-      if (sock) {
+      const state = useVideoCallStore.getState();
+      const targetCall = state.currentCall || currentCall;
+      if (sock && targetCall) {
         sock.emit("webRtcOffer", {
           offer,
-          receiverId: currentCall.participantId,
-          callId: currentCall.callId
+          receiverId: targetCall.participantId,
+          callId: targetCall.callId
         });
       }
     } catch (error) {
@@ -405,9 +439,8 @@ const VideoCallModel = () => {
       const stream = await initializeMedia();
       createPeerConnection(stream);
 
-      // Emit acceptCall to backend to inform caller
       const sock = getSocket();
-      if (sock) {
+      if (sock && incomingCall) {
         sock.emit("acceptCall", {
           callerId: incomingCall.callerId,
           callId: incomingCall.callId,
@@ -418,14 +451,15 @@ const VideoCallModel = () => {
         });
       }
 
-      // Transfer incomingCall details to currentCall details for UI coherence
-      setCurrentCall({
-        callId: incomingCall.callId,
-        participantId: incomingCall.callerId,
-        participantName: incomingCall.callerName,
-        participantAvatar: incomingCall.callerAvatar
-      });
-      clearIncomingCall();
+      if (incomingCall) {
+        setCurrentCall({
+          callId: incomingCall.callId,
+          participantId: incomingCall.callerId,
+          participantName: incomingCall.callerName,
+          participantAvatar: incomingCall.callerAvatar
+        });
+        clearIncomingCall();
+      }
     } catch (error) {
       console.error("Receiver answer sequence failed:", error);
       setCallStatus("failed");
@@ -451,115 +485,17 @@ const VideoCallModel = () => {
     endCall();
   }, [incomingCall, callType, endCall, recordAndLogCall]);
 
-  // ----------------------------------------------------
-  // WEBRTC SIGNALING INBOUND EVENT HANDLERS
-  // ----------------------------------------------------
-
-  // 1. Handle incoming WebRTC Offer
-  const handleWebRtcOffer = useCallback(async ({ offer, senderId, callId }) => {
-    try {
-      const pc = useVideoCallStore.getState().peerConnection;
-      if (!pc) return;
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      await processQueuedIceCandidates();
-
-      // Generate SDP Answer
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      // Emit SDP Answer
-      const sock = getSocket();
-      if (sock) {
-        sock.emit("webRtcAnswer", {
-          answer,
-          receiverId: senderId,
-          callId
-        });
-      }
-    } catch (error) {
-      console.error("Failed to handle WebRTC offer:", error);
-    }
-  }, [processQueuedIceCandidates]);
-
-  // 2. Handle incoming WebRTC Answer
-  const handleWebRtcAnswer = useCallback(async ({ answer }) => {
-    try {
-      const pc = useVideoCallStore.getState().peerConnection;
-      if (!pc) return;
-
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      await processQueuedIceCandidates();
-    } catch (error) {
-      console.error("Failed to handle WebRTC answer:", error);
-    }
-  }, [processQueuedIceCandidates]);
-
-  // 3. Handle incoming ICE Candidate
-  const handleWebRtcIceCandidate = useCallback(async ({ candidate }) => {
-    const pc = useVideoCallStore.getState().peerConnection;
-    if (pc && pc.remoteDescription) {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (error) {
-        console.error("Error adding direct WebRTC ICE Candidate:", error);
-      }
-    } else {
-      addIceCandidate(candidate);
-    }
-  }, [addIceCandidate]);
-
-  // Bind all backend signal events — re-runs when socket connects/reconnects
+  // Event listener for callAccepted window dispatch from VideoCallManager
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    console.log("[VideoCallModel] Registering WebRTC signal listeners on socket:", socket.id);
-
-    const handleCallAcceptedEvent = ({ receiverInfo }) => {
-      useVideoCallStore.setState((state) => ({
-        currentCall: state.currentCall ? {
-          ...state.currentCall,
-          participantName: receiverInfo.username,
-          participantAvatar: receiverInfo.profilePicture
-        } : null
-      }));
-
+    const handleAcceptedWindow = () => {
       initializeCallerFlow();
     };
 
-    const handleCallRejectedEvent = () => {
-      setCallStatus("rejected");
-      setTimeout(() => {
-        endCall();
-      }, 2000);
-    };
-
-    socket.on("callAccepted", handleCallAcceptedEvent);
-    socket.on("callRejected", handleCallRejectedEvent);
-    socket.on("callEnded", endCall);
-    socket.on("webRtcOffer", handleWebRtcOffer);
-    socket.on("webRtcAnswer", handleWebRtcAnswer);
-    socket.on("webRtcIceCandidate", handleWebRtcIceCandidate);
-
+    window.addEventListener("callAcceptedEvent", handleAcceptedWindow);
     return () => {
-      socket.off("callAccepted", handleCallAcceptedEvent);
-      socket.off("callRejected", handleCallRejectedEvent);
-      socket.off("callEnded", endCall);
-      socket.off("webRtcOffer", handleWebRtcOffer);
-      socket.off("webRtcAnswer", handleWebRtcAnswer);
-      socket.off("webRtcIceCandidate", handleWebRtcIceCandidate);
+      window.removeEventListener("callAcceptedEvent", handleAcceptedWindow);
     };
-  }, [
-    storeSocket,
-    setCurrentCall,
-    initializeCallerFlow,
-    setCallStatus,
-    endCall,
-    handleWebRtcOffer,
-    handleWebRtcAnswer,
-    handleWebRtcIceCandidate
-  ]);
+  }, [initializeCallerFlow]);
 
   if (!isCallModelOpen) return null;
 

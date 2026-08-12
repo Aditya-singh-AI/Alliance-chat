@@ -14,6 +14,8 @@ import { sendOTP, verifyOTP, updateUserProfile } from '../../services/user.servi
 import { countries } from '../../utils/country';
 import Spinner from '../../utils/Spinner';
 
+import { resetAllStores } from '../../utils/storeReset';
+
 // ── Validation Schemas ──────────────────────────────────────────────────────
 const loginSchema = yup.object().shape({
   phoneNumber: yup.string().nullable().notRequired()
@@ -94,6 +96,7 @@ const Login = () => {
       if (res.status === 'success' || user) {
         toast.success('OTP verified!');
         if (user?.username && user?.profilePicture) {
+          resetAllStores();
           setUser(user); toast.success(`Welcome back, ${user.username}!`);
           navigate('/'); resetLoginState();
         } else { setStep(3); }
@@ -117,6 +120,7 @@ const Login = () => {
     try {
       const res = await updateUserProfile(formData);
       if (res.status === 'success') {
+        resetAllStores();
         setUser(res.data); toast.success('Profile created!');
         navigate('/'); resetLoginState();
       }

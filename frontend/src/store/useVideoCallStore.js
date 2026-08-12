@@ -31,6 +31,7 @@ const useVideoCallStore = create((set, get) => ({
   // WebRTC
   peerConnection: null,
   iceCandidatesQueue: [],
+  pendingOffer: null,
   isCallModelOpen: false,
   callStatus: "idle", // "idle", "calling", "ringing", "connecting", "connected", "ended", "failed", "rejected"
   callStartTime: null,
@@ -46,6 +47,7 @@ const useVideoCallStore = create((set, get) => ({
   setLocalStream: (stream) => set({ localStream: stream }),
   setRemoteStream: (stream) => set({ remoteStream: stream }),
   setPeerConnection: (pc) => set({ peerConnection: pc }),
+  setPendingOffer: (offer) => set({ pendingOffer: offer }),
   setCallModelOpen: (open) => set({ isCallModelOpen: open }),
   setCallStatus: (status) => {
     if (status === "connected" && !get().callStartTime) {
@@ -117,11 +119,18 @@ const useVideoCallStore = create((set, get) => ({
     const { localStream, peerConnection } = get();
 
     if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
+      try {
+        localStream.getTracks().forEach((track) => track.stop());
+      } catch (e) {}
     }
 
     if (peerConnection) {
-      peerConnection.close();
+      try {
+        peerConnection.onicecandidate = null;
+        peerConnection.ontrack = null;
+        peerConnection.onconnectionstatechange = null;
+        peerConnection.close();
+      } catch (e) {}
     }
 
     set({
@@ -135,6 +144,7 @@ const useVideoCallStore = create((set, get) => ({
       isAudioEnabled: true,
       peerConnection: null,
       iceCandidatesQueue: [],
+      pendingOffer: null,
       isCallModelOpen: false,
       callStatus: "idle",
       callStartTime: null

@@ -9,16 +9,17 @@ import { useThemeStore } from '../store/useThemeStore';
 import { useSocketStore } from '../store/useSocketStore';
 import { logoutUser } from '../services/user.service';
 
+import { resetAllStores } from '../utils/storeReset';
+
 const SideBar = ({ isMobile, onThemeClick }) => {
-  const { user, clearUser } = useUserStore();
+  const { user } = useUserStore();
   const { setActiveTab } = useLayoutStore();
   const { theme } = useThemeStore();
-  const { disconnect: disconnectSocket } = useSocketStore();
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try { await logoutUser(); } catch (e) {} finally { disconnectSocket(); clearUser(); }
+    try { await logoutUser(); } catch (e) {} finally { resetAllStores(); }
   };
 
   const handleProfileAvatarClick = () => {

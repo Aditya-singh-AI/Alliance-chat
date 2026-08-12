@@ -198,7 +198,7 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className={`h-full flex flex-col overflow-y-auto select-none p-4 md:p-6 ${
+      className={`h-full flex flex-col overflow-y-auto select-none p-4 md:p-6 pb-28 md:pb-6 ${
         isDark ? 'bg-[#09090B] text-[#FAFAFA]' : 'bg-[#FAFAF9] text-[#0C0A09]'
       }`}
     >
@@ -320,127 +320,224 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Users Management Table */}
-      <div className={`rounded-3xl border overflow-hidden flex-1 ${
-        isDark ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-[#E7E5E4] shadow-sm'
-      }`}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className={`border-b ${isDark ? 'bg-[#09090B]/60 border-[#27272A] text-[#71717A]' : 'bg-[#FAFAF9] border-[#E7E5E4] text-[#A8A29E]'} font-bold uppercase tracking-wider`}>
-                <th className="py-3.5 px-4">User</th>
-                <th className="py-3.5 px-4">Contact Info</th>
-                <th className="py-3.5 px-4">Role</th>
-                <th className="py-3.5 px-4">Stats</th>
-                <th className="py-3.5 px-4">Joined Date</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-[#27272A]' : 'divide-[#E7E5E4]'}`}>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-[#71717A]">
-                    Loading user registry...
-                  </td>
+      {/* Users Management Section */}
+      <div className="flex-1 space-y-4">
+        {/* Mobile View Card List (< md screen) */}
+        <div className="block md:hidden space-y-3">
+          {loading ? (
+            <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-[#18181B] border-[#27272A] text-[#71717A]' : 'bg-white border-[#E7E5E4] text-[#78716C]'}`}>
+              Loading user registry...
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-[#18181B] border-[#27272A] text-[#71717A]' : 'bg-white border-[#E7E5E4] text-[#78716C]'}`}>
+              No matching user registrations found.
+            </div>
+          ) : (
+            filteredUsers.map((u) => (
+              <div
+                key={u._id}
+                className={`p-4 rounded-3xl border space-y-3 transition-all ${
+                  isDark ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-[#E7E5E4] shadow-sm'
+                }`}
+              >
+                {/* Header: User Info & Role */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={u.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u._id}`}
+                        alt={u.username}
+                        className="w-11 h-11 rounded-2xl object-cover border border-orange-500/20"
+                      />
+                      {u.isOnline && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-black rounded-full" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-extrabold text-sm truncate">{u.username || 'Unnamed User'}</h4>
+                      <p className={`text-[10px] truncate ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                        ID: {u._id}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-xl flex-shrink-0 inline-flex items-center gap-1 ${
+                    u.role === 'admin'
+                      ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                  }`}>
+                    {u.role === 'admin' ? <FaUserShield /> : <FaUserCheck />}
+                    <span>{u.role || 'user'}</span>
+                  </span>
+                </div>
+
+                {/* Contact details */}
+                <div className={`p-3 rounded-2xl text-xs space-y-1.5 ${isDark ? 'bg-[#09090B] text-[#A1A1AA]' : 'bg-[#FAFAF9] text-[#78716C]'}`}>
+                  {u.email && (
+                    <div className="flex items-center gap-2">
+                      <FaEnvelope className="text-[#F97316] w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{u.email}</span>
+                    </div>
+                  )}
+                  {u.phoneNumber && (
+                    <div className="flex items-center gap-2">
+                      <FaPhone className="text-emerald-500 w-3 h-3 flex-shrink-0" />
+                      <span>{u.phoneSuffix}{u.phoneNumber}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer: Stats & Actions */}
+                <div className="flex items-center justify-between pt-1 text-xs border-t border-[#27272A]/40">
+                  <div className={`flex items-center gap-3 text-[11px] font-semibold ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                    <span>Chats: <strong className="text-white">{u.conversationCount || 0}</strong></span>
+                    <span>Sent: <strong className="text-white">{u.messageCount || 0}</strong></span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleOpenEdit(u)}
+                      className="px-3 py-1.5 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 text-xs font-bold transition-colors flex items-center gap-1.5"
+                    >
+                      <FaEdit className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => setDeletingUser(u)}
+                      className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs font-bold transition-colors flex items-center gap-1.5"
+                    >
+                      <FaTrash className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View Table (>= md screen) */}
+        <div className={`hidden md:block rounded-3xl border overflow-hidden ${
+          isDark ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-[#E7E5E4] shadow-sm'
+        }`}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className={`border-b ${isDark ? 'bg-[#09090B]/60 border-[#27272A] text-[#71717A]' : 'bg-[#FAFAF9] border-[#E7E5E4] text-[#A8A29E]'} font-bold uppercase tracking-wider`}>
+                  <th className="py-3.5 px-4">User</th>
+                  <th className="py-3.5 px-4">Contact Info</th>
+                  <th className="py-3.5 px-4">Role</th>
+                  <th className="py-3.5 px-4">Stats</th>
+                  <th className="py-3.5 px-4">Joined Date</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-[#71717A]">
-                    No matching user registrations found.
-                  </td>
-                </tr>
-              ) : (
-                filteredUsers.map((u) => (
-                  <tr key={u._id} className={`transition-colors ${isDark ? 'hover:bg-[#27272A]/50' : 'hover:bg-[#F5F5F4]'}`}>
-                    {/* User Info */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative flex-shrink-0">
-                          <img
-                            src={u.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u._id}`}
-                            alt={u.username}
-                            className="w-10 h-10 rounded-2xl object-cover border border-orange-500/20"
-                          />
-                          {u.isOnline && (
-                            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-black rounded-full" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-extrabold text-sm truncate">{u.username || 'Unnamed User'}</p>
-                          <p className={`text-[10px] truncate ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
-                            ID: {u._id}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Contact Info */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-0.5">
-                        {u.email && (
-                          <div className="flex items-center gap-1.5 font-semibold">
-                            <FaEnvelope className="text-[#F97316] w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{u.email}</span>
-                          </div>
-                        )}
-                        {u.phoneNumber && (
-                          <div className={`flex items-center gap-1.5 text-[11px] ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
-                            <FaPhone className="text-emerald-500 w-3 h-3 flex-shrink-0" />
-                            <span>{u.phoneSuffix}{u.phoneNumber}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Role */}
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-xl inline-flex items-center gap-1 ${
-                        u.role === 'admin'
-                          ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                      }`}>
-                        {u.role === 'admin' ? <FaUserShield /> : <FaUserCheck />}
-                        <span>{u.role || 'user'}</span>
-                      </span>
-                    </td>
-
-                    {/* Stats */}
-                    <td className="py-3.5 px-4">
-                      <div className={`text-[11px] font-semibold space-y-0.5 ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
-                        <p>Chats: <strong className="text-white">{u.conversationCount || 0}</strong></p>
-                        <p>Sent: <strong className="text-white">{u.messageCount || 0}</strong></p>
-                      </div>
-                    </td>
-
-                    {/* Joined Date */}
-                    <td className={`py-3.5 px-4 text-[11px] font-medium ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
-                      {u.createdAt ? formatTime(u.createdAt) : 'N/A'}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(u)}
-                          className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
-                          title="Edit User Details"
-                        >
-                          <FaEdit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeletingUser(u)}
-                          className="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
-                          title="Delete User Registration"
-                        >
-                          <FaTrash className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+              </thead>
+              <tbody className={`divide-y ${isDark ? 'divide-[#27272A]' : 'divide-[#E7E5E4]'}`}>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-[#71717A]">
+                      Loading user registry...
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-[#71717A]">
+                      No matching user registrations found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((u) => (
+                    <tr key={u._id} className={`transition-colors ${isDark ? 'hover:bg-[#27272A]/50' : 'hover:bg-[#F5F5F4]'}`}>
+                      {/* User Info */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-shrink-0">
+                            <img
+                              src={u.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u._id}`}
+                              alt={u.username}
+                              className="w-10 h-10 rounded-2xl object-cover border border-orange-500/20"
+                            />
+                            {u.isOnline && (
+                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-black rounded-full" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-extrabold text-sm truncate">{u.username || 'Unnamed User'}</p>
+                            <p className={`text-[10px] truncate ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                              ID: {u._id}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Contact Info */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          {u.email && (
+                            <div className="flex items-center gap-1.5 font-semibold">
+                              <FaEnvelope className="text-[#F97316] w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">{u.email}</span>
+                            </div>
+                          )}
+                          {u.phoneNumber && (
+                            <div className={`flex items-center gap-1.5 text-[11px] ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
+                              <FaPhone className="text-emerald-500 w-3 h-3 flex-shrink-0" />
+                              <span>{u.phoneSuffix}{u.phoneNumber}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Role */}
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-xl inline-flex items-center gap-1 ${
+                          u.role === 'admin'
+                            ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        }`}>
+                          {u.role === 'admin' ? <FaUserShield /> : <FaUserCheck />}
+                          <span>{u.role || 'user'}</span>
+                        </span>
+                      </td>
+
+                      {/* Stats */}
+                      <td className="py-3.5 px-4">
+                        <div className={`text-[11px] font-semibold space-y-0.5 ${isDark ? 'text-[#A1A1AA]' : 'text-[#78716C]'}`}>
+                          <p>Chats: <strong className="text-white">{u.conversationCount || 0}</strong></p>
+                          <p>Sent: <strong className="text-white">{u.messageCount || 0}</strong></p>
+                        </div>
+                      </td>
+
+                      {/* Joined Date */}
+                      <td className={`py-3.5 px-4 text-[11px] font-medium ${isDark ? 'text-[#71717A]' : 'text-[#A8A29E]'}`}>
+                        {u.createdAt ? formatTime(u.createdAt) : 'N/A'}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenEdit(u)}
+                            className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
+                            title="Edit User Details"
+                          >
+                            <FaEdit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingUser(u)}
+                            className="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                            title="Delete User Registration"
+                          >
+                            <FaTrash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

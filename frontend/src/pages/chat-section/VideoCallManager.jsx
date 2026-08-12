@@ -18,48 +18,126 @@ const VideoCallManager = () => {
   } = useVideoCallStore();
 
   const { user } = useUserStore();
-  // Subscribe reactively so the component re-renders when the socket connects
   const storeSocket = useSocketStore((state) => state.socket);
 
-  // Handle incoming call event from socket
-  const handleIncomingCall = useCallback(({ callerId, callerName, callerAvatar, callId, callType }) => {
-    console.log("[VideoCallManager] Incoming call from:", callerName, callerId);
-    setIncomingCall({
-      callerId,
-      callerName,
-      callerAvatar,
-      callId
-    });
-    setCallType(callType);
-    setCallModelOpen(true);
-    setCallStatus("ringing");
-  }, [setIncomingCall, setCallType, setCallModelOpen, setCallStatus]);
-
-  // Handle call failure/offline state
-  const handleCallEnded = useCallback(() => {
-    setCallStatus("failed");
-    setTimeout(() => {
-      endCall();
-    }, 2000);
-  }, [setCallStatus, endCall]);
-
-  // Set up socket event listeners — re-runs whenever storeSocket changes
+  // Set up socket event listeners in VideoCallManager (always mounted)
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
     console.log("[VideoCallManager] Registering socket call event listeners on:", socket.id);
 
+    const handleIncomingCall = ({ callerId, callerName, callerAvatar, callId, callType }) => {
+      console.log("[VideoCallManager] Incoming call from:", callerName, callerId);
+      setIncomingCall({
+        callerId,
+        callerName,
+        callerAvatar,
+        callId
+      });
+      setCallType(callType);
+      setCallModelOpen(true);
+      setCallStatus("ringing");
+    };
+
+    const handleCallFailed = () => {
+      console.log("[VideoCallManager] Call failed or remote user offline");
+      setCallStatus("failed");
+      setTimeout(() => {
+        endCall();
+      }, 2000);
+    };
+
+    const handleCallAccepted = ({ receiverInfo, callId }) => {
+      console.log("[VideoCallManager] Call accepted by:", receiverInfo?.username);
+      useVideoCallStore.setState((state) => ({
+        currentCall: state.currentCall ? {
+          ...state.currentCall,
+          participantName: receiverInfo?.username || state.currentCall.participantName,
+          participantAvatar: receiverInfo?.profilePicture || state.currentCall.participantAvatar
+        } : null
+      }));
+      window.dispatchEvent(new CustomEvent("callAcceptedEvent"));
+    };
+
+    const handleCallRejected = () => {
+      console.log("[VideoCallManager] Call rejected");
+      setCallStatus("rejected");
+      setTimeout(() => {
+        endCall();
+      }, 2000);
+    };
+
+    const handleCallEnded = () => {
+      console.log("[VideoCallManager] Call ended by remote participant");
+      endCall();
+    };
+
+    const handleWebRtcOffer = async ({ offer, senderId, callId }) => {
+      console.log("[VideoCallManager] Received webRtcOffer from:", senderId);
+      const pc = useVideoCallStore.getState().peerConnection;
+      if (pc) {
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+          await useVideoCallStore.getState().processQueuedIceCandidates();
+          window.dispatchEvent(new CustomEvent("webRtcOfferReceived"));
+        } catch (e) {
+          console.error("Error setting remote description for offer:", e);
+        }
+      } else {
+        console.log("[VideoCallManager] PeerConnection not ready yet. Storing offer in pendingOffer...");
+        useVideoCallStore.getState().setPendingOffer(offer);
+      }
+    };
+
+    const handleWebRtcAnswer = async ({ answer, senderId, callId }) => {
+      console.log("[VideoCallManager] Received webRtcAnswer from:", senderId);
+      const pc = useVideoCallStore.getState().peerConnection;
+      if (pc && pc.signalingState !== "stable") {
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+          await useVideoCallStore.getState().processQueuedIceCandidates();
+        } catch (e) {
+          console.error("Error setting remote description for answer:", e);
+        }
+      }
+    };
+
+    const handleWebRtcIceCandidate = async ({ candidate, senderId, callId }) => {
+      const pc = useVideoCallStore.getState().peerConnection;
+      if (pc && pc.remoteDescription) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (error) {
+          console.error("Error adding WebRTC ICE Candidate:", error);
+        }
+      } else {
+        useVideoCallStore.getState().addIceCandidate(candidate);
+      }
+    };
+
     socket.on("incomingCall", handleIncomingCall);
-    socket.on("callFailed", handleCallEnded);
+    socket.on("callFailed", handleCallFailed);
+    socket.on("callAccepted", handleCallAccepted);
+    socket.on("callRejected", handleCallRejected);
+    socket.on("callEnded", handleCallEnded);
+    socket.on("webRtcOffer", handleWebRtcOffer);
+    socket.on("webRtcAnswer", handleWebRtcAnswer);
+    socket.on("webRtcIceCandidate", handleWebRtcIceCandidate);
 
     return () => {
       socket.off("incomingCall", handleIncomingCall);
-      socket.off("callFailed", handleCallEnded);
+      socket.off("callFailed", handleCallFailed);
+      socket.off("callAccepted", handleCallAccepted);
+      socket.off("callRejected", handleCallRejected);
+      socket.off("callEnded", handleCallEnded);
+      socket.off("webRtcOffer", handleWebRtcOffer);
+      socket.off("webRtcAnswer", handleWebRtcAnswer);
+      socket.off("webRtcIceCandidate", handleWebRtcIceCandidate);
     };
-  }, [storeSocket, handleIncomingCall, handleCallEnded]);
+  }, [storeSocket, setIncomingCall, setCallType, setCallModelOpen, setCallStatus, endCall]);
 
-  // Initiate call action — uses getSocket() at invocation time to guarantee a live reference
+  // Initiate call action
   const initiateCall = useCallback((receiverId, receiverName, receiverAvatar, callType = "video") => {
     if (!user) {
       console.error("[VideoCallManager] Cannot initiate call: no authenticated user");

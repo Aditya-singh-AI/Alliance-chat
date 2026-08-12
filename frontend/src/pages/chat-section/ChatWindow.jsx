@@ -49,32 +49,30 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   const lastSeen = getUserLastSeen(contactId) || selectedContact?.lastSeen;
   const isTyping = isUserTyping(contactId, currentConversation);
 
-  const scrollToBottom = (behavior = "smooth") => { messageEndRef.current?.scrollIntoView({ behavior, block: "end" }); };
-  useEffect(() => { scrollToBottom(); }, [messages]);
+  const scrollToBottom = (behavior = "auto") => {
+    messageEndRef.current?.scrollIntoView({ behavior, block: "end" });
+  };
+  useEffect(() => {
+    scrollToBottom("auto");
+  }, [messages]);
 
   // Reset replying state when changing selected contact
   useEffect(() => {
     setReplyingToMessage(null);
   }, [selectedContact]);
 
-  // Handle dynamic visual viewport resize when mobile keyboard pops up
+  // Handle dynamic visual viewport height when mobile keyboard toggles (resize only)
   useEffect(() => {
     if (typeof window === "undefined" || !window.visualViewport) return;
 
     const handleResize = () => {
       setViewportHeight(window.visualViewport.height);
-      window.scrollTo(0, 0);
-      setTimeout(() => {
-        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
     };
 
     window.visualViewport.addEventListener("resize", handleResize);
-    window.visualViewport.addEventListener("scroll", handleResize);
 
     return () => {
       window.visualViewport.removeEventListener("resize", handleResize);
-      window.visualViewport.removeEventListener("scroll", handleResize);
     };
   }, []);
 
@@ -106,13 +104,12 @@ const ChatWindow = ({ selectedContact: propSelectedContact, setSelectedContact: 
   }, [message, contactId, startTyping, stopTyping]);
 
   const handleInputFocus = () => {
-    window.scrollTo(0, 0);
     if (typeof window !== "undefined" && window.visualViewport) {
       setViewportHeight(window.visualViewport.height);
     }
     setTimeout(() => {
-      scrollToBottom();
-    }, 120);
+      scrollToBottom("auto");
+    }, 150);
   };
 
   const handleFileChange = (e) => {
